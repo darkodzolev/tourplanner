@@ -1,0 +1,19 @@
+@startuml
+
+left to right direction
+
+actor "Hiker" as h
+actor "Analyst" as a
+
+package "Tour Planner" {
+    usecase "add Tour" as UC1
+    usecase "see Tour details" as UC2
+    usecase "export Tour report" as UC3
+}
+
+h --> UC1
+h --> UC2
+
+a --> UC3
+
+@enduml

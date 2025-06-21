@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.HistoryView">
+    <Label text="%history.heading" />
+
+    <ListView fx:id="searchHistoryList" VBox.vgrow="ALWAYS" />
+</VBox>

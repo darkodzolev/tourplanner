@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox prefHeight="720" prefWidth="1280" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.MainView">
+
+    <fx:include source="menu-view.fxml" />
+
+    <HBox VBox.vgrow="ALWAYS">
+
+        <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+        </padding>
+
+        <fx:include source="search-view.fxml" />
+
+        <fx:include source="history-view.fxml" />
+
+    </HBox>
+
+</VBox>
