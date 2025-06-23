@@ -6,6 +6,8 @@
     <persistence-unit name="hibernate">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <class>at.technikum.javafx.entity.SearchTerm</class>
+        <class>at.technikum.javafx.entity.Tour</class>
+        <class>at.technikum.javafx.entity.TourLog</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/search"/>
@@ -13,6 +15,9 @@
             <property name="jakarta.persistence.jdbc.password" value="swen2"/>
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
             <property name="hibernate.hbm2ddl.auto" value="create"/>
+            <property name="hibernate.connection.provider_class"
+                      value="org.hibernate.hikaricp.internal.HikariCPConnectionProvider"/>
+            <property name="hibernate.hikari.maximumPoolSize" value="10"/>
         </properties>
     </persistence-unit>
 </persistence>

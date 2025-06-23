@@ -2,31 +2,27 @@ package at.technikum.javafx.viewmodel;
 
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.service.TourService;
-import at.technikum.javafx.service.SearchTermService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public class MainViewModel {
+public class TourViewModel {
 
     private final TourService tourService;
-    private final SearchTermService searchTermService;
 
-    // list of all tours for the ListView
+    // all tours, backing the ListView
     private final ObservableList<Tour> tours = FXCollections.observableArrayList();
 
-    // the currently-selected tour in the ListView
+    // currently selected Tour
     private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
 
-    public MainViewModel(
-            TourService tourService,
-            SearchTermService searchTermService
-    ) {
-        this.tourService        = tourService;
-        this.searchTermService  = searchTermService;
+    public TourViewModel(TourService tourService) {
+        this.tourService = tourService;
+        loadTours();
+    }
 
-        // load existing tours on startup
+    private void loadTours() {
         tours.setAll(tourService.getAllTours());
     }
 
@@ -45,8 +41,7 @@ public class MainViewModel {
 
     public void updateTour(Tour tour) {
         tourService.updateTour(tour);
-        // refresh list
-        tours.setAll(tourService.getAllTours());
+        loadTours();
     }
 
     public void deleteTour(Tour tour) {

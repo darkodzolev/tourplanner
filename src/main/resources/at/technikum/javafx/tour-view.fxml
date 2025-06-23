@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.TourView">
+
+    <ListView fx:id="tourList" prefHeight="200" />
+    <HBox spacing="5">
+        <Button fx:id="newButton"    text="New" />
+        <Button fx:id="editButton"   text="Edit" />
+        <Button fx:id="deleteButton" text="Delete" />
+    </HBox>
+
+    <!-- Tour detail form -->
+    <GridPane hgap="10" vgap="10">
+        <columnConstraints>
+            <ColumnConstraints minWidth="80" />
+            <ColumnConstraints hgrow="ALWAYS" />
+        </columnConstraints>
+
+        <Label text="Name:"        GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="nameField"       GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+        <Label text="Description:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <TextArea fx:id="descField"       prefRowCount="2"
+                  GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+        <Label text="From:"        GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <TextField fx:id="fromField"       GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+        <Label text="To:"          GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextField fx:id="toField"         GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+        <Label text="Transport:"   GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <TextField fx:id="transportField" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+        <Label text="Distance:"    GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+        <TextField fx:id="distanceField"   GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+        <Label text="Time:"        GridPane.rowIndex="6" GridPane.columnIndex="0"/>
+        <TextField fx:id="timeField"       GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <!-- Map placeholder -->
+    <ImageView fx:id="mapView"
+               fitWidth="360" fitHeight="200"
+               preserveRatio="true"
+               style="-fx-border-color: gray; -fx-border-width: 1" />
+
+</VBox>
