@@ -40,6 +40,10 @@ public class TourService {
     }
 
     public void deleteTour(Tour tour) {
+        List<TourLog> logs = tourLogRepository.findByTour(tour);
+        for (TourLog log : logs) {
+            tourLogRepository.delete(log);
+        }
         tourRepository.delete(tour);
     }
 
