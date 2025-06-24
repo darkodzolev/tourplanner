@@ -1,6 +1,7 @@
 module at.technikum.javafx {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.web;
 
     requires jakarta.persistence;
     requires org.hibernate.orm.core;

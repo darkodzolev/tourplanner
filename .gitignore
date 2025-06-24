@@ -39,3 +39,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# ignore the real API key
+/src/main/resources/ors.properties

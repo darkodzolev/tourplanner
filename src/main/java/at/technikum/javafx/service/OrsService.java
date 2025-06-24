@@ -108,19 +108,21 @@ public class OrsService {
             String jsonBody = MAPPER.writeValueAsString(body);
 
             String uri = String.format(
-                    "%s/v2/directions/%s/geojson?api_key=%s",
+                    "%s/v2/directions/%s/geojson",
                     BASE_URL, profile, API_KEY
             );
 
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(uri))
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
+                    .header("Authorization", API_KEY)
+                    .header("Content-Type",  "application/json")
+                    .header("Accept",        "application/json, application/geo+json")
                     .POST(BodyPublishers.ofString(jsonBody))
                     .build();
 
             var resp = httpClient.send(req, BodyHandlers.ofString());
             if (resp.statusCode() != 200) {
+                System.err.println("ORS error body: " + resp.body());
                 throw new RuntimeException("ORS directions failed: HTTP " + resp.statusCode());
             }
 
