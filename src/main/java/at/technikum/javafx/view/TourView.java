@@ -77,6 +77,7 @@ public class TourView implements Initializable {
         viewModel.selectedTourProperty().addListener(
                 (ObservableValue<? extends Tour> obs, Tour oldTour, Tour newTour) -> {
                     if (newTour != null) {
+                        // Populate fields
                         nameField.setText(newTour.getName());
                         descField.setText(newTour.getDescription());
                         fromField.setText(newTour.getFromLocation());
@@ -84,11 +85,22 @@ public class TourView implements Initializable {
                         transportField.setValue(newTour.getTransportType());
                         distanceField.setText(String.valueOf(newTour.getDistance()));
                         timeField.setText(newTour.getEstimatedTime());
+
+                        // Redraw the map for this tour
+                        updateMapForTour(newTour);
+
                     } else {
                         clearFields();
                     }
                 }
         );
+
+        tourList.setOnMouseClicked(event -> {
+            Tour selected = viewModel.selectedTourProperty().get();
+            if (selected != null) {
+                updateMapForTour(selected);
+            }
+        });
 
         // New Tour handler with validation
         newButton.setOnAction(e -> {
@@ -183,7 +195,7 @@ public class TourView implements Initializable {
                 try {
                     mapService.writeDirectionsJs(route, leafletDir);
                     String htmlUrl = leafletDir.resolve("leaflet.html").toUri().toString();
-                    mapEngine.load(htmlUrl);
+                    mapEngine.load(htmlUrl + "?t=" + System.currentTimeMillis());
                 } catch (IOException ioEx) {
                     showAlert("Map Error", "Could not generate or open the map: " + ioEx.getMessage());
                     return;
@@ -201,11 +213,62 @@ public class TourView implements Initializable {
 
                 // 6) Persist changes
                 viewModel.updateTour(t);
+                updateMapForTour(t);
 
             } catch (IllegalArgumentException ex) {
                 showAlert("Validation error", ex.getMessage());
             }
         });
+
+        deleteButton.setOnAction(e -> {
+            Tour selected = viewModel.selectedTourProperty().get();
+            if (selected == null) {
+                showAlert("Delete error", "No tour selected to delete.");
+                return;
+            }
+
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                    "Are you sure you want to delete this tour?",
+                    ButtonType.YES, ButtonType.NO);
+            confirm.setHeaderText(null);
+            confirm.setTitle("Confirm Delete");
+
+            confirm.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.YES) {
+                    viewModel.deleteTour(selected);
+                    clearFields(); // optional: reset form
+                }
+            });
+        });
+    }
+
+    private void updateMapForTour(Tour tour) {
+        try {
+            // 1) geocode the stored from/to locations
+            GeocodeResult fromGeo = orsService.geocode(tour.getFromLocation())
+                    .orElseThrow(() -> new IllegalArgumentException("Could not geocode origin"));
+            GeocodeResult toGeo   = orsService.geocode(tour.getToLocation())
+                    .orElseThrow(() -> new IllegalArgumentException("Could not geocode destination"));
+
+            // 2) get the route
+            String profile = tour.getTransportType().trim().toLowerCase();
+            RouteResult route = orsService.directions(
+                    profile,
+                    fromGeo.getLongitude(), fromGeo.getLatitude(),
+                    toGeo.getLongitude(),   toGeo.getLatitude()
+            ).orElseThrow(() -> new IllegalArgumentException("No route found"));
+
+            // 3) overwrite the one directions.js
+            mapService.writeDirectionsJs(route, leafletDir);
+
+            // 4) reload leaflet.html with a cache-buster
+            String htmlUrl = leafletDir.resolve("leaflet.html").toUri().toString();
+            mapEngine.load(htmlUrl + "?t=" + System.currentTimeMillis());
+            mapEngine.reload();
+
+        } catch (Exception ex) {
+            showAlert("Map Error", ex.getMessage());
+        }
     }
 
     private void clearFields() {
