@@ -10,7 +10,4 @@ public class MenuViewModel {
         this.searchTermService = searchTermService;
     }
 
-    public void clearHistory() {
-        searchTermService.clearSearchTerms();
-    }
 }

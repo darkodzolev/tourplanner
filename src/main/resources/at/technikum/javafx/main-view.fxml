@@ -20,8 +20,6 @@
 
         <fx:include source="search-view.fxml" />
 
-        <fx:include source="history-view.fxml" />
-
     </HBox>
 
 </VBox>

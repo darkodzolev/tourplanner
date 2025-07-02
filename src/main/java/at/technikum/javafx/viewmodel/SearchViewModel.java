@@ -20,18 +20,13 @@ public class SearchViewModel {
     private final BooleanProperty searchDisabled
             = new SimpleBooleanProperty(true);
 
-    public SearchViewModel(
-            EventManager eventManager,
-            SearchTermService searchTermService
-    ) {
+    public SearchViewModel(EventManager eventManager, SearchTermService searchTermService) {
         this.eventManager = eventManager;
         this.searchTermService = searchTermService;
 
         this.searchDisabled.bind(searchText.isEmpty());
 
-        this.eventManager.subscribe(
-                Events.SEARCH_TERM_SELECTED, this::onSearchTermSelected
-        );
+        this.searchText.addListener((obs, oldVal, newVal) -> eventManager.publish(Events.SEARCH_TERM_SELECTED, newVal));
     }
 
     public void search() {

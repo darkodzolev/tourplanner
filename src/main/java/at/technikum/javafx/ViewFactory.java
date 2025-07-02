@@ -10,13 +10,11 @@ import at.technikum.javafx.repository.TourRepositoryOrm;
 import at.technikum.javafx.service.SearchTermService;
 import at.technikum.javafx.service.TourLogService;
 import at.technikum.javafx.service.TourService;
-import at.technikum.javafx.view.HistoryView;
 import at.technikum.javafx.view.MainView;
 import at.technikum.javafx.view.MenuView;
 import at.technikum.javafx.view.SearchView;
 import at.technikum.javafx.view.TourLogView;
 import at.technikum.javafx.view.TourView;
-import at.technikum.javafx.viewmodel.HistoryViewModel;
 import at.technikum.javafx.viewmodel.MainViewModel;
 import at.technikum.javafx.viewmodel.MenuViewModel;
 import at.technikum.javafx.viewmodel.SearchViewModel;
@@ -58,7 +56,7 @@ public class ViewFactory {
         this.tourLogService        = new TourLogService(tourLogRepository);
 
         // ViewModels
-        this.tourViewModel         = new TourViewModel(tourService);
+        this.tourViewModel         = new TourViewModel(tourService, eventManager);
         this.tourLogViewModel      = new TourLogViewModel(tourLogService);
 
         // Wire tour selection → log loading
@@ -85,7 +83,7 @@ public class ViewFactory {
         }
 
         if (TourView.class == viewClass) {
-            return new TourView(tourViewModel);
+            return new TourView(new TourViewModel(tourService, eventManager));
         }
 
         if (TourLogView.class == viewClass) {
@@ -98,10 +96,6 @@ public class ViewFactory {
 
         if (SearchView.class == viewClass) {
             return new SearchView(new SearchViewModel(eventManager, searchTermService));
-        }
-
-        if (HistoryView.class == viewClass) {
-            return new HistoryView(new HistoryViewModel(eventManager, searchTermService));
         }
 
         throw new IllegalArgumentException(

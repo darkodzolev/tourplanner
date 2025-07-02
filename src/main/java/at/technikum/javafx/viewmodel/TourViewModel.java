@@ -1,11 +1,14 @@
 package at.technikum.javafx.viewmodel;
 
 import at.technikum.javafx.entity.Tour;
+import at.technikum.javafx.event.EventManager;
+import at.technikum.javafx.event.Events;
 import at.technikum.javafx.service.TourService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 
 public class TourViewModel {
 
@@ -17,9 +20,12 @@ public class TourViewModel {
     // currently selected Tour
     private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
 
-    public TourViewModel(TourService tourService) {
+    private final FilteredList<Tour> filteredTour = new FilteredList<>(tours, t -> true);
+
+    public TourViewModel(TourService tourService, EventManager eventManager) {
         this.tourService = tourService;
         loadTours();
+        eventManager.subscribe(Events.SEARCH_TERM_SELECTED, this::applyFilter);
     }
 
     private void loadTours() {
@@ -27,7 +33,7 @@ public class TourViewModel {
     }
 
     public ObservableList<Tour> getTours() {
-        return tours;
+        return filteredTour;
     }
 
     public ObjectProperty<Tour> selectedTourProperty() {
@@ -47,5 +53,22 @@ public class TourViewModel {
     public void deleteTour(Tour tour) {
         tourService.deleteTour(tour);
         tours.remove(tour);
+    }
+
+    private void applyFilter(String term) {
+        String lower = term == null ? "" : term.toLowerCase();
+        filteredTour.setPredicate(tour -> {
+            if (lower.isBlank()) return true;
+
+            // full-text check across all fields
+            if (tour.getName().toLowerCase().contains(lower)) return true;
+            if (tour.getDescription().toLowerCase().contains(lower)) return true;
+            if (tour.getFromLocation().toLowerCase().contains(lower)) return true;
+            if (tour.getToLocation().toLowerCase().contains(lower)) return true;
+            if (tour.getTransportType().toLowerCase().contains(lower)) return true;
+
+            // TODO: include computed attributes here too once you have them
+            return false;
+        });
     }
 }

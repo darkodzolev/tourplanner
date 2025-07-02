@@ -27,8 +27,6 @@ public class SearchView implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         searchInput.textProperty()
                 .bindBidirectional(viewModel.searchTextProperty());
-        searchButton.disableProperty()
-                .bind(viewModel.searchDisabledProperty());
     }
 
     @FXML
