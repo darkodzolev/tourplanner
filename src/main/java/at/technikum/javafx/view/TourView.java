@@ -21,6 +21,8 @@ import javafx.scene.image.Image;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
+import javafx.scene.control.Label;
+
 import java.net.URL;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -55,11 +57,14 @@ public class TourView implements Initializable {
     @FXML private TextField fromField;
     @FXML private TextField toField;
     @FXML private ComboBox<String> transportField;
-    @FXML private TextField distanceField;
-    @FXML private TextField timeField;
+    @FXML private Label distanceField;
+    @FXML private Label timeField;
 
     @FXML private WebView mapView;
     private WebEngine mapEngine;
+
+    @FXML private Label popularityLabel;
+    @FXML private Label childFriendlyLabel;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -240,6 +245,11 @@ public class TourView implements Initializable {
                 }
             });
         });
+
+        popularityLabel.textProperty()
+                .bind(viewModel.popularityProperty());
+        childFriendlyLabel.textProperty()
+                .bind(viewModel.childFriendlinessProperty());
     }
 
     private void updateMapForTour(Tour tour) {
@@ -277,8 +287,6 @@ public class TourView implements Initializable {
         fromField.clear();
         toField.clear();
         transportField.setValue(null);
-        distanceField.clear();
-        timeField.clear();
         mapEngine.loadContent("");
     }
 

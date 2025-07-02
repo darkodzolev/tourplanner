@@ -57,10 +57,15 @@
         </ComboBox>
 
         <Label text="Distance:"    GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-        <TextField fx:id="distanceField"   GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+        <Label fx:id="distanceField"   GridPane.rowIndex="5" GridPane.columnIndex="1"/>
 
         <Label text="Time:"        GridPane.rowIndex="6" GridPane.columnIndex="0"/>
-        <TextField fx:id="timeField"       GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+        <Label fx:id="timeField"       GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+
+        <Label text="Popularity:"            GridPane.rowIndex="7" GridPane.columnIndex="0"/>
+        <Label fx:id="popularityLabel"       GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+        <Label text="Child-friendliness:"     GridPane.rowIndex="8" GridPane.columnIndex="0"/>
+        <Label fx:id="childFriendlyLabel"    GridPane.rowIndex="8" GridPane.columnIndex="1"/>
     </GridPane>
 
     <!-- Map placeholder -->

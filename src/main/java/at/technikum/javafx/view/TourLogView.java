@@ -10,6 +10,9 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 
+import java.util.function.UnaryOperator;
+import javafx.scene.control.TextFormatter;
+
 public class TourLogView implements Initializable {
 
     private final TourLogViewModel viewModel;
@@ -45,6 +48,49 @@ public class TourLogView implements Initializable {
                 clearFields();
             }
         });
+
+        UnaryOperator<TextFormatter.Change> filter = change -> {
+            String oldText = change.getControlText();
+            String newText = change.getControlNewText();
+
+            // Strip non-digits
+            String digits = newText.replaceAll("\\D", "");
+            if (digits.length() > 6) {
+                digits = digits.substring(0, 6);
+            }
+
+            // Build formatted string and track where we should put the caret
+            StringBuilder formatted = new StringBuilder();
+            int caretInDigits = change.getCaretPosition()
+                    - countNonDigits(newText, change.getCaretPosition());
+            // clamp
+            caretInDigits = Math.min(caretInDigits, digits.length());
+
+            int newCaretPos = 0;
+            for (int i = 0, d = 0; d < digits.length(); ++i) {
+                if (i == 2 || i == 5) {
+                    formatted.append(':');
+                } else {
+                    formatted.append(digits.charAt(d++));
+                }
+                // advance caret mapping: if we passed the original digit caret index,
+                // mark this as the new caret position
+                if (d == caretInDigits) {
+                    newCaretPos = formatted.length();
+                }
+            }
+
+            // Prepare the change to replace the whole text
+            change.setRange(0, oldText.length());
+            change.setText(formatted.toString());
+
+            // Place both anchor and caret at newCaretPos
+            change.selectRange(newCaretPos, newCaretPos);
+            return change;
+        };
+
+        TextFormatter<String> formatter = new TextFormatter<>(filter);
+        logTimeField.setTextFormatter(formatter);
 
         // setup rating spinner
         ratingSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 5, 1));
@@ -148,5 +194,13 @@ public class TourLogView implements Initializable {
         alert.setHeaderText(null);
         alert.setTitle(title);
         alert.showAndWait();
+    }
+
+    private int countNonDigits(String s, int pos) {
+        int count = 0;
+        for (int i = 0; i < pos && i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i))) count++;
+        }
+        return count;
     }
 }

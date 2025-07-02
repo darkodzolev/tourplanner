@@ -6,11 +6,15 @@ import at.technikum.javafx.event.EventManager;
 import at.technikum.javafx.event.Events;
 import at.technikum.javafx.service.TourLogService;
 import at.technikum.javafx.service.TourService;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 public class TourViewModel {
 
@@ -18,12 +22,11 @@ public class TourViewModel {
     private final TourLogService tourLogService;
     private final EventManager eventManager;
 
-    // all tours, backing the ListView
+    private final StringProperty popularity = new SimpleStringProperty("0");
+    private final StringProperty childFriendliness = new SimpleStringProperty("0.00");
+
     private final ObservableList<Tour> tours = FXCollections.observableArrayList();
-
-    // currently selected Tour
     private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
-
     private final FilteredList<Tour> filteredTour = new FilteredList<>(tours, t -> true);
 
     public TourViewModel(TourService tourService, TourLogService tourLogService, EventManager eventManager) {
@@ -32,6 +35,19 @@ public class TourViewModel {
         this.eventManager = eventManager;
         loadTours();
         eventManager.subscribe(Events.SEARCH_TERM_SELECTED, this::applyFilter);
+
+        selectedTourProperty().addListener((obs, oldT, newT) -> {
+            if (newT != null) {
+                var logs = tourLogService.getLogsForTour(newT);
+                popularity.set(String.valueOf(logs.size()));
+                childFriendliness.set(
+                        String.format("%.2f", computeChildFriendliness(logs))
+                );
+            } else {
+                popularity.set("0");
+                childFriendliness.set("0.00");
+            }
+        });
     }
 
     private void loadTours() {
@@ -61,49 +77,91 @@ public class TourViewModel {
         tours.remove(tour);
     }
 
+    public StringProperty popularityProperty() {
+        return popularity;
+    }
+
+    public StringProperty childFriendlinessProperty() {
+        return childFriendliness;
+    }
+
     private int computePopularity(Tour tour) {
         return tour.getLogs().size();
     }
 
-    private double computeChildFriendliness(Tour tour) {
-        var logs = tour.getLogs();
-        if (logs.isEmpty()) return 0.0;
+    private double computeChildFriendliness(List<TourLog> logs) {
+        if (logs.isEmpty()) {
+            return 0.0;
+        }
 
-        // parse difficulty (string) into a double
-        double avgDiff = logs.stream()
-                .mapToDouble(l -> {
+        var validDiffs = logs.stream()
+                .map(TourLog::getDifficulty)
+                .flatMap(s -> {
                     try {
-                        return Double.parseDouble(l.getDifficulty());
+                        double d = Double.parseDouble(s);
+                        return (d >= 1 && d <= 5) ? Stream.of(d) : Stream.empty();
                     } catch (NumberFormatException ex) {
-                        return 0.0; // or some default
+                        return Stream.empty();
                     }
                 })
-                .average().orElse(0.0);
+                .mapToDouble(Double::doubleValue)
+                .toArray();
 
-        // avg total time in seconds
-        double avgTime = logs.stream()
-                .mapToDouble(l -> parseSeconds(l.getTotalTime()))
-                .average().orElse(0.0);
+        double diffScore;
+        if (validDiffs.length == 0) {
+            diffScore = 0.5;     // assume “medium” if no valid difficulties
+        } else {
+            double avgDiff = Arrays.stream(validDiffs).average().getAsDouble();
+            diffScore = (5.0 - avgDiff) / 4.0;
+        }
 
-        // avg total distance
-        double avgDist = logs.stream()
+        var validTimes = logs.stream()
+                .map(TourLog::getTotalTime)
+                .flatMapToLong(s -> {
+                    long secs = safeParseSeconds(s);    // returns -1 if invalid
+                    return secs >= 0 ? LongStream.of(secs) : LongStream.empty();
+                })
+                .toArray();
+
+        double timeScore;
+        if (validTimes.length == 0) {
+            timeScore = 0.5;     // medium default
+        } else {
+            double avgTime = Arrays.stream(validTimes).average().getAsDouble();
+            timeScore = 1.0 / (avgTime / 3600.0 + 1.0);
+        }
+
+        var validDists = logs.stream()
                 .mapToDouble(TourLog::getTotalDistance)
-                .average().orElse(0.0);
+                .filter(d -> d >= 0)
+                .toArray();
 
-        // normalize each metric to 0–1
-        double diffScore = (5.0 - avgDiff) / 4.0;               // 1.0 if avgDiff=1, 0.0 if avgDiff=5
-        double timeScore = 1.0 / (avgTime / 3600.0 + 1.0);      // 1.0 if instant, ↓ as time grows
-        double distScore = 1.0 / (avgDist / 1000.0 + 1.0);      // 1.0 if zero km, ↓ as distance grows
+        double distScore;
+        if (validDists.length == 0) {
+            distScore = 0.5;    // medium default
+        } else {
+            double avgDist = Arrays.stream(validDists).average().getAsDouble();
+            distScore = 1.0 / (avgDist / 1000.0 + 1.0);
+        }
 
-        // final score is the average
-        return (diffScore + timeScore + distScore) / 3.0;
+        // Average the three sub-scores
+        double cf = (diffScore + timeScore + distScore) / 3.0;
+        // clamp just in case
+        return Math.max(0.0, Math.min(cf, 1.0));
     }
 
-    private long parseSeconds(String hms) {
-        String[] p = hms.split(":");
-        return Integer.parseInt(p[0]) * 3600
-                + Integer.parseInt(p[1]) * 60
-                + Integer.parseInt(p[2]);
+    private long safeParseSeconds(String hms) {
+        if (hms == null) return -1;
+        String[] parts = hms.split(":");
+        if (parts.length != 3) return -1;
+        try {
+            int h = Integer.parseInt(parts[0]);
+            int m = Integer.parseInt(parts[1]);
+            int s = Integer.parseInt(parts[2]);
+            return (long)h * 3600 + m * 60 + s;
+        } catch (NumberFormatException ex) {
+            return -1;
+        }
     }
 
     private void applyFilter(String term) {
@@ -122,7 +180,8 @@ public class TourViewModel {
                 return true;
             }
 
-            String cf = String.format("%.2f", computeChildFriendliness(tour));
+            List<TourLog> logs = tourLogService.getLogsForTour(tour);
+            String cf = String.format("%.2f", computeChildFriendliness(logs));
             if (cf.contains(lower)) {
                 return true;
             }
