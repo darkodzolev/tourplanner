@@ -33,15 +33,6 @@ public class TourLogView implements Initializable {
         // sync selected log
         viewModel.selectedLogProperty().bind(logList.getSelectionModel().selectedItemProperty());
 
-        // load logs when tour selection changes
-        viewModel.selectedTourProperty().addListener((obs, oldTour, newTour) -> {
-            if (newTour != null) {
-                viewModel.loadLogsForTour(newTour);
-            } else {
-                viewModel.clearLogs();
-            }
-        });
-
         // populate fields when a log is selected
         viewModel.selectedLogProperty().addListener((obs, oldLog, newLog) -> {
             if (newLog != null) {

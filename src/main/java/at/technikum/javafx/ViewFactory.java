@@ -56,7 +56,7 @@ public class ViewFactory {
         this.tourLogService        = new TourLogService(tourLogRepository);
 
         // ViewModels
-        this.tourViewModel         = new TourViewModel(tourService, eventManager);
+        this.tourViewModel         = new TourViewModel(tourService, tourLogService, eventManager);
         this.tourLogViewModel      = new TourLogViewModel(tourLogService);
 
         // Wire tour selection → log loading
@@ -83,7 +83,7 @@ public class ViewFactory {
         }
 
         if (TourView.class == viewClass) {
-            return new TourView(new TourViewModel(tourService, eventManager));
+            return new TourView(tourViewModel);
         }
 
         if (TourLogView.class == viewClass) {
