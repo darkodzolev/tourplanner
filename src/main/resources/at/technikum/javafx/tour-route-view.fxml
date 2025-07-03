@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.WebView?>
+
+<VBox xmlns="http://javafx.com/javafx/17.0.12"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="at.technikum.javafx.view.TourRouteView"
+      VBox.vgrow="ALWAYS"
+      spacing="0">
+
+    <StackPane VBox.vgrow="ALWAYS">
+        <!-- Actual map -->
+        <WebView fx:id="mapView"
+                 VBox.vgrow="ALWAYS"
+                 style="-fx-border-color:gray; -fx-border-width:1"/>
+
+        <!-- Placeholder shown when no tour/route -->
+        <Label fx:id="placeholderLabel"
+               text="%route.placeholder"
+               style="-fx-text-fill:gray; -fx-font-style:italic;"
+               visible="false"
+               pickOnBounds="false" />
+    </StackPane>
+</VBox>

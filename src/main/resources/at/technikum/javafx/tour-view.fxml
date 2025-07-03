@@ -1,74 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.web.WebView?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.collections.FXCollections?>
-<?import java.lang.String?>
 
-<VBox HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.TourView">
-
-    <ListView fx:id="tourList" prefHeight="200" />
-    <HBox spacing="5">
-        <Button fx:id="newButton"    text="New" />
-        <Button fx:id="editButton"   text="Edit" />
-        <Button fx:id="deleteButton" text="Delete" />
+<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.TourView" spacing="5" HBox.hgrow="ALWAYS" style="-fx-padding:10;">
+    <HBox spacing="5" alignment="CENTER_LEFT">
+        <Label text="%tour.list.title" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+        <Button fx:id="newButton"    text="%button.add"    onAction="#onNewTour"/>
+        <Button fx:id="deleteButton" text="%button.delete"/>
+        <Button fx:id="editButton"   text="%button.edit"   onAction="#onEditTour"/>
     </HBox>
-
-    <!-- Tour detail form -->
-    <GridPane hgap="10" vgap="10">
-        <columnConstraints>
-            <ColumnConstraints minWidth="80" />
-            <ColumnConstraints hgrow="ALWAYS" />
-        </columnConstraints>
-
-        <Label text="Name:"        GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-        <TextField fx:id="nameField"       GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-
-        <Label text="Description:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <TextArea fx:id="descField"       prefRowCount="2"
-                  GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
-        <Label text="From:"        GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <TextField fx:id="fromField"       GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-
-        <Label text="To:"          GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <TextField fx:id="toField"         GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-
-        <ComboBox fx:id="transportField"
-                  promptText="Select transport"
-                  GridPane.rowIndex="4" GridPane.columnIndex="1">
-            <items>
-                <FXCollections fx:factory="observableArrayList">
-                    <String fx:value="driving-car"/>
-                    <String fx:value="foot-walking"/>
-                    <String fx:value="cycling-regular"/>
-                </FXCollections>
-            </items>
-        </ComboBox>
-
-        <Label text="Distance:"    GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-        <Label fx:id="distanceField"   GridPane.rowIndex="5" GridPane.columnIndex="1"/>
-
-        <Label text="Time:"        GridPane.rowIndex="6" GridPane.columnIndex="0"/>
-        <Label fx:id="timeField"       GridPane.rowIndex="6" GridPane.columnIndex="1"/>
-
-        <Label text="Popularity:"            GridPane.rowIndex="7" GridPane.columnIndex="0"/>
-        <Label fx:id="popularityLabel"       GridPane.rowIndex="7" GridPane.columnIndex="1"/>
-        <Label text="Child-friendliness:"     GridPane.rowIndex="8" GridPane.columnIndex="0"/>
-        <Label fx:id="childFriendlyLabel"    GridPane.rowIndex="8" GridPane.columnIndex="1"/>
-    </GridPane>
-
-    <!-- Map placeholder -->
-    <WebView fx:id="mapView" prefWidth="360" prefHeight="200" style="-fx-border-color: gray; -fx-border-width: 1" />
-
+    <ListView fx:id="tourList" VBox.vgrow="ALWAYS"/>
 </VBox>

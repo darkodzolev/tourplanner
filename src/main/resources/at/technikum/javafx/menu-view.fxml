@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.MenuView">
     <MenuBar>
-
+        <Menu text="%menu.file">
+            <MenuItem text="%menu.import"/>
+            <MenuItem text="%menu.export"/>
+        </Menu>
     </MenuBar>
 </VBox>

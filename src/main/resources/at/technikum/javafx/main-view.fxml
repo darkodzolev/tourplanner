@@ -1,25 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="720" prefWidth="1280" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.MainView">
-
-    <fx:include source="menu-view.fxml" />
-
-    <HBox VBox.vgrow="ALWAYS">
-
-        <padding>
-            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-        </padding>
-
-        <fx:include source="tour-view.fxml" />
-
-        <fx:include source="tourlog-view.fxml"/>
-
-        <fx:include source="search-view.fxml" />
-
-    </HBox>
-
-</VBox>
+<BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.MainView">
+    <top>
+        <VBox>
+            <fx:include source="menu-view.fxml"/>
+            <fx:include source="search-view.fxml"/>
+        </VBox>
+    </top>
+    <center>
+        <HBox spacing="10" HBox.hgrow="ALWAYS">
+            <fx:include source="tour-view.fxml" HBox.hgrow="NEVER"/>
+            <VBox spacing="10" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS" style="-fx-padding:10;">
+                <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+                    <tabs>
+                        <Tab text="%tab.general" closable="false">
+                            <fx:include source="tour-general-view.fxml"/>
+                        </Tab>
+                        <Tab text="%tab.route"   closable="false">
+                            <fx:include source="tour-route-view.fxml"/>
+                        </Tab>
+                    </tabs>
+                </TabPane>
+                <fx:include source="tourlog-view.fxml" VBox.vgrow="NEVER"/>
+            </VBox>
+        </HBox>
+    </center>
+</BorderPane>

@@ -20,6 +20,7 @@ import at.technikum.javafx.viewmodel.MenuViewModel;
 import at.technikum.javafx.viewmodel.SearchViewModel;
 import at.technikum.javafx.viewmodel.TourLogViewModel;
 import at.technikum.javafx.viewmodel.TourViewModel;
+import at.technikum.javafx.view.TourRouteView;
 
 public class ViewFactory {
 
@@ -29,6 +30,7 @@ public class ViewFactory {
 
     private final SearchTermRepository searchTermRepository;
     private final SearchTermService searchTermService;
+    private final SearchViewModel searchViewModel;
 
     private final TourRepository tourRepository;
     private final TourLogRepository tourLogRepository;
@@ -41,28 +43,29 @@ public class ViewFactory {
 
     private ViewFactory() {
         // Core frameworks
-        this.eventManager          = new EventManager();
+        this.eventManager = new EventManager();
 
-        // Search term setup
-        this.searchTermRepository  = new SearchTermRepositoryOrm();
-        this.searchTermService     = new SearchTermService(eventManager, searchTermRepository);
+        // search history (still used by Main/Menu VMs)
+        this.searchTermRepository = new SearchTermRepositoryOrm();
+        this.searchTermService = new SearchTermService(eventManager, searchTermRepository);
 
-        // Tour and log repositories
-        this.tourRepository        = new TourRepositoryOrm();
-        this.tourLogRepository     = new TourLogRepositoryOrm();
+        // **single** SearchViewModel, auto-publishing on typing
+        this.searchViewModel = new SearchViewModel(eventManager);
 
-        // Services, injecting log repo into TourService too
-        this.tourService           = new TourService(tourRepository, tourLogRepository);
-        this.tourLogService        = new TourLogService(tourLogRepository);
+        // tours + logs
+        this.tourRepository = new TourRepositoryOrm();
+        this.tourLogRepository = new TourLogRepositoryOrm();
+        this.tourService = new TourService(tourRepository, tourLogRepository);
+        this.tourLogService = new TourLogService(tourLogRepository);
 
-        // ViewModels
-        this.tourViewModel         = new TourViewModel(tourService, tourLogService, eventManager);
-        this.tourLogViewModel      = new TourLogViewModel(tourLogService);
+        // Tour screen
+        this.tourViewModel = new TourViewModel(tourService, tourLogService, eventManager);
+        this.tourLogViewModel = new TourLogViewModel(tourLogService);
 
         // Wire tour selection → log loading
-        tourViewModel.selectedTourProperty().addListener((obs, oldTour, newTour) -> {
-            if (newTour != null) {
-                tourLogViewModel.loadLogsForTour(newTour);
+        tourViewModel.selectedTourProperty().addListener((obs, oldT, newT) -> {
+            if (newT != null) {
+                tourLogViewModel.loadLogsForTour(newT);
             } else {
                 tourLogViewModel.clearLogs();
             }
@@ -70,10 +73,9 @@ public class ViewFactory {
     }
 
     public static ViewFactory getInstance() {
-        if (null == instance) {
+        if (instance == null) {
             instance = new ViewFactory();
         }
-
         return instance;
     }
 
@@ -81,25 +83,22 @@ public class ViewFactory {
         if (MainView.class == viewClass) {
             return new MainView(new MainViewModel(tourService, searchTermService));
         }
-
         if (TourView.class == viewClass) {
             return new TourView(tourViewModel);
         }
-
+        if (TourRouteView.class == viewClass) {
+            return new TourRouteView(tourViewModel);
+        }
         if (TourLogView.class == viewClass) {
             return new TourLogView(tourLogViewModel);
         }
-
         if (MenuView.class == viewClass) {
             return new MenuView(new MenuViewModel(searchTermService));
         }
-
         if (SearchView.class == viewClass) {
-            return new SearchView(new SearchViewModel(eventManager, searchTermService));
+            // reuse the one VM that auto-fires on typing
+            return new SearchView(searchViewModel);
         }
-
-        throw new IllegalArgumentException(
-                "Unknown view class: " + viewClass
-        );
+        throw new IllegalArgumentException("Unknown view class: " + viewClass);
     }
 }

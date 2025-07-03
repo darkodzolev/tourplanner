@@ -176,16 +176,6 @@ public class TourViewModel {
             if (tour.getToLocation().toLowerCase().contains(lower)) return true;
             if (tour.getTransportType().toLowerCase().contains(lower)) return true;
 
-            if (String.valueOf(computePopularity(tour)).contains(lower)) {
-                return true;
-            }
-
-            List<TourLog> logs = tourLogService.getLogsForTour(tour);
-            String cf = String.format("%.2f", computeChildFriendliness(logs));
-            if (cf.contains(lower)) {
-                return true;
-            }
-
             return false;
         });
     }

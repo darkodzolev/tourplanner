@@ -1,54 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.collections.FXCollections?>
-<?import java.lang.String?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox HBox.hgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.TourLogView">
-
-    <!-- Tour Logs list and CRUD buttons -->
-    <ListView fx:id="logList" prefHeight="200" />
-    <HBox spacing="5">
-        <Button fx:id="newLogButton"    text="New Log" />
-        <Button fx:id="editLogButton"   text="Edit Log" />
-        <Button fx:id="deleteLogButton" text="Delete Log" />
+<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.TourLogView" spacing="5" VBox.vgrow="ALWAYS">
+    <HBox spacing="5" alignment="CENTER_LEFT">
+        <Label text="%tourlogs.title" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
+        <Button fx:id="newLogButton"    text="%button.add"             onAction="#openNewLogDialog"/>
+        <Button fx:id="deleteLogButton" text="%button.delete"          onAction="#handleDeleteLog"/>
+        <Button fx:id="editLogButton"   text="%button.edit"            onAction="#openEditLogDialog"/>
     </HBox>
-
-    <!-- Tour Log detail form -->
-    <GridPane hgap="10" vgap="10">
-        <columnConstraints>
-            <ColumnConstraints minWidth="90" />
-            <ColumnConstraints hgrow="ALWAYS" />
-        </columnConstraints>
-
-        <Label text="Comment:"            GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-        <TextArea fx:id="commentField" prefRowCount="2"
-                  GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
-        <Label text="Difficulty:"         GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-        <ComboBox fx:id="difficultyBox"
-                  GridPane.rowIndex="2" GridPane.columnIndex="1">
-            <items>
-                <FXCollections fx:factory="observableArrayList">
-                    <String fx:value="Easy"/>
-                    <String fx:value="Medium"/>
-                    <String fx:value="Hard"/>
-                </FXCollections>
-            </items>
-        </ComboBox>
-
-        <Label text="Distance:"           GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-        <TextField fx:id="logDistanceField"
-                   GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-
-        <Label text="Total Time:"         GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-        <TextField fx:id="logTimeField"
-                   GridPane.rowIndex="4" GridPane.columnIndex="1"/>
-
-        <Label text="Rating (1–5):"       GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-        <Spinner fx:id="ratingSpinner" min="1" max="5" editable="true"
-                 GridPane.rowIndex="5" GridPane.columnIndex="1"/>
-    </GridPane>
+    <ListView fx:id="logList" VBox.vgrow="ALWAYS"/>
 </VBox>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import java.lang.String?>
+
+<DialogPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.TourLogDialogView">
+    <content>
+        <GridPane hgap="10" vgap="10">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <columnConstraints>
+                <ColumnConstraints percentWidth="30"/>
+                <ColumnConstraints percentWidth="70"/>
+            </columnConstraints>
+
+            <Label text="%log.dialog.comment"      GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <TextArea fx:id="commentField" prefRowCount="2" wrapText="true" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+            <Label text="%log.dialog.difficulty"   GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <ComboBox fx:id="difficultyCombo" promptText="%log.dialog.difficulty.prompt" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="Easy"/>
+                        <String fx:value="Medium"/>
+                        <String fx:value="Hard"/>
+                    </FXCollections>
+                </items>
+            </ComboBox>
+
+            <Label text="%log.dialog.distance"     GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <TextField fx:id="distanceField" promptText="%log.dialog.distance.prompt" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+            <Label text="%log.dialog.time"         GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+            <TextField fx:id="timeField" promptText="%log.dialog.time.prompt" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+            <Label text="%log.dialog.rating"       GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+            <Spinner fx:id="ratingSpinner" editable="true" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        </GridPane>
+    </content>
+    <buttonTypes>
+        <ButtonType text="%button.save"   buttonData="OK_DONE"/>
+        <ButtonType text="%button.cancel" buttonData="CANCEL_CLOSE"/>
+    </buttonTypes>
+</DialogPane>
