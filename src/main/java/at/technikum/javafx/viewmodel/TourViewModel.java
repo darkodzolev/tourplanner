@@ -28,6 +28,7 @@ public class TourViewModel {
     private final ObservableList<Tour> tours = FXCollections.observableArrayList();
     private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
     private final FilteredList<Tour> filteredTour = new FilteredList<>(tours, t -> true);
+    private final ListProperty<Tour> selectedTours = new SimpleListProperty<>(FXCollections.observableArrayList());
 
     public TourViewModel(TourService tourService, TourLogService tourLogService, EventManager eventManager) {
         this.tourService = tourService;
@@ -62,6 +63,10 @@ public class TourViewModel {
                         String.format("%.2f", computeChildFriendliness(logs))
                 );
             }
+        });
+
+        eventManager.subscribe(Events.TOURS_CHANGED, payload -> {
+            loadTours();
         });
     }
 
@@ -188,5 +193,9 @@ public class TourViewModel {
 
     private boolean containsIgnoreCase(String field, String term) {
         return field != null && field.toLowerCase().contains(term);
+    }
+
+    public ObservableList<Tour> getSelectedTours() {
+        return selectedTours.get();
     }
 }

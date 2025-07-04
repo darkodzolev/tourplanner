@@ -28,6 +28,9 @@ import javafx.scene.web.WebEngine;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javafx.collections.ListChangeListener;
+import javafx.scene.control.SelectionMode;
+
 public class TourView implements Initializable {
     private final TourViewModel viewModel;
 
@@ -59,8 +62,12 @@ public class TourView implements Initializable {
 
         // bind the list and selection
         tourList.setItems(viewModel.getTours());
-        viewModel.selectedTourProperty()
-                .bind(tourList.getSelectionModel().selectedItemProperty());
+        viewModel.selectedTourProperty().bind(tourList.getSelectionModel().selectedItemProperty());
+
+        tourList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        tourList.getSelectionModel().getSelectedItems().addListener((ListChangeListener<Tour>) c -> {
+            viewModel.getSelectedTours().setAll(tourList.getSelectionModel().getSelectedItems());
+        });
 
         // handlers for the CRUD buttons
         newButton.setOnAction(e -> onNewTour());

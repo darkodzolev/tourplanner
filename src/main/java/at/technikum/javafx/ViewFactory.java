@@ -39,31 +39,36 @@ public class ViewFactory {
     private final TourService tourService;
     private final TourLogService tourLogService;
 
+    private final MenuViewModel menuViewModel;
+
     private final TourViewModel tourViewModel;
     private final TourLogViewModel tourLogViewModel;
 
     private ViewFactory() {
-        // Core frameworks
+        // 1) Core event bus
         this.eventManager = new EventManager();
 
-        // search history (still used by Main/Menu VMs)
+        // 2) Search setup
         this.searchTermRepository = new SearchTermRepositoryOrm();
-        this.searchTermService = new SearchTermService(eventManager, searchTermRepository);
+        this.searchTermService    = new SearchTermService(eventManager, searchTermRepository);
+        this.searchViewModel      = new SearchViewModel(eventManager);
 
-        // **single** SearchViewModel, auto-publishing on typing
-        this.searchViewModel = new SearchViewModel(eventManager);
-
-        // tours + logs
-        this.tourRepository = new TourRepositoryOrm();
+        // 3) Data repositories
+        this.tourRepository    = new TourRepositoryOrm();
         this.tourLogRepository = new TourLogRepositoryOrm();
-        this.tourService = new TourService(tourRepository, tourLogRepository);
-        this.tourLogService = new TourLogService(tourLogRepository);
 
-        // Tour screen
-        this.tourViewModel = new TourViewModel(tourService, tourLogService, eventManager);
+        // 4) Business services (must come before VMs that depend on them)
+        this.tourService     = new TourService(tourRepository, tourLogRepository);
+        this.tourLogService  = new TourLogService(tourLogRepository);
+
+        // 5) Menu VM (needs both services)
+        this.menuViewModel = new MenuViewModel(tourService, tourLogService, eventManager);
+
+        // 6) Tour VMs
+        this.tourViewModel    = new TourViewModel(tourService, tourLogService, eventManager);
         this.tourLogViewModel = new TourLogViewModel(tourLogService, eventManager);
 
-        // Wire tour selection → log loading
+        // 7) Wire Tour → Log loading
         tourViewModel.selectedTourProperty().addListener((obs, oldT, newT) -> {
             if (newT != null) {
                 tourLogViewModel.loadLogsForTour(newT);
@@ -97,7 +102,7 @@ public class ViewFactory {
             return new TourLogView(tourLogViewModel);
         }
         if (MenuView.class == viewClass) {
-            return new MenuView(new MenuViewModel(searchTermService));
+            return new MenuView(menuViewModel, tourViewModel);
         }
         if (SearchView.class == viewClass) {
             // reuse the one VM that auto-fires on typing

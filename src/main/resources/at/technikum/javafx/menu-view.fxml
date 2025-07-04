@@ -5,8 +5,8 @@
 <VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.MenuView">
     <MenuBar>
         <Menu text="%menu.file">
-            <MenuItem text="%menu.import"/>
-            <MenuItem text="%menu.export"/>
+            <MenuItem fx:id="importMenuItem" text="%menu.import"/>
+            <MenuItem fx:id="exportMenuItem" text="%menu.export"/>
         </Menu>
     </MenuBar>
 </VBox>
