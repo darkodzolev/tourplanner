@@ -29,18 +29,40 @@ public class TourLogView implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        viewModel.selectedTourProperty().addListener((obs, oldTour, newTour) -> {
-            if (newTour != null) {
-                viewModel.loadLogsForTour(newTour);
+        // 1) show meaningful text for each TourLog
+        logList.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(TourLog log, boolean empty) {
+                super.updateItem(log, empty);
+                if (empty || log == null) {
+                    setText("");
+                } else {
+                    setText(String.format(
+                            "%s — %s (%.1f km, %s)",
+                            log.getDateTime().toLocalDate(),
+                            log.getComment(),
+                            log.getTotalDistance(),
+                            log.getTotalTime()
+                    ));
+                }
+            }
+        });
+
+        // 2) bind list items & selection
+        logList.setItems(viewModel.getLogs());
+        viewModel.selectedLogProperty()
+                .bind(logList.getSelectionModel().selectedItemProperty());
+
+        // 3) reload logs when tour changes
+        viewModel.selectedTourProperty().addListener((obs, oldT, newT) -> {
+            if (newT != null) {
+                viewModel.loadLogsForTour(newT);
             } else {
                 viewModel.clearLogs();
             }
         });
 
-        // bind the list of logs
-        logList.setItems(viewModel.getLogs());
-
-        // wire up the CRUD buttons…
+        // 4) wire up buttons
         newLogButton.setOnAction(e -> openNewLogDialog());
         editLogButton.setOnAction(e -> openEditLogDialog());
         deleteLogButton.setOnAction(e -> handleDeleteLog());
@@ -57,21 +79,24 @@ public class TourLogView implements Initializable {
                     i18n
             );
             DialogPane pane = loader.load();
-            TourLogDialogView dialogCtrl = loader.getController();
+            TourLogDialogView ctrl = loader.getController();
 
-            // attach current Tour to the new log
-            Tour parentTour = viewModel.getSelectedTour();
-            dialogCtrl.setParentTour(parentTour);
+            // attach the currently selected Tour
+            Tour parent = viewModel.getSelectedTour();
+            ctrl.setParentTour(parent);
 
             Dialog<ButtonType> dialog = new Dialog<>();
-            dialog.setTitle(i18n.getString("log.dialog.new.title"));  // you can add this key or use a literal
+            dialog.setTitle(i18n.getString("log.dialog.new.title"));
             dialog.setDialogPane(pane);
 
-            Optional<ButtonType> result = dialog.showAndWait();
-            if (result.orElse(ButtonType.CANCEL) == ButtonType.OK) {
-                TourLog newLog = dialogCtrl.getLogFromFields();
-                viewModel.createLog(newLog);
+            // show and wait for button press
+            Optional<ButtonType> res = dialog.showAndWait();
+            if (res.isPresent() &&
+                    res.get().getButtonData() == ButtonBar.ButtonData.OK_DONE) {
+                TourLog log = ctrl.getLogFromFields();
+                viewModel.createLog(log);
             }
+
         } catch (IOException ex) {
             showAlert("Error", "Cannot open New Log dialog: " + ex.getMessage());
         }
@@ -94,20 +119,22 @@ public class TourLogView implements Initializable {
                     i18n
             );
             DialogPane pane = loader.load();
-            TourLogDialogView dialogCtrl = loader.getController();
+            TourLogDialogView ctrl = loader.getController();
 
-            // prefill fields for editing
-            dialogCtrl.setLog(selected);
+            // prefill with the existing log
+            ctrl.setLog(selected);
 
             Dialog<ButtonType> dialog = new Dialog<>();
-            dialog.setTitle(i18n.getString("log.dialog.edit.title"));  // add this key or use literal
+            dialog.setTitle(i18n.getString("log.dialog.edit.title"));
             dialog.setDialogPane(pane);
 
-            Optional<ButtonType> result = dialog.showAndWait();
-            if (result.orElse(ButtonType.CANCEL) == ButtonType.OK) {
-                TourLog updated = dialogCtrl.getUpdatedLog(selected);
+            Optional<ButtonType> res = dialog.showAndWait();
+            if (res.isPresent() &&
+                    res.get().getButtonData() == ButtonBar.ButtonData.OK_DONE) {
+                TourLog updated = ctrl.getUpdatedLog(selected);
                 viewModel.updateLog(updated);
             }
+
         } catch (IOException ex) {
             showAlert("Error", "Cannot open Edit Log dialog: " + ex.getMessage());
         }
