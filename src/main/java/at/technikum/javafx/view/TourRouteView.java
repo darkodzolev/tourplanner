@@ -108,6 +108,7 @@ public class TourRouteView implements Initializable {
 
             // 5) Load the map
             mapEngine.load(url);
+            mapEngine.reload();
 
         } catch (Exception ex) {
             mapEngine.loadContent("");
