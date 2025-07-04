@@ -169,14 +169,18 @@ public class TourViewModel {
         filteredTour.setPredicate(tour -> {
             if (lower.isBlank()) return true;
 
-            // full-text check across all fields
-            if (tour.getName().toLowerCase().contains(lower)) return true;
-            if (tour.getDescription().toLowerCase().contains(lower)) return true;
-            if (tour.getFromLocation().toLowerCase().contains(lower)) return true;
-            if (tour.getToLocation().toLowerCase().contains(lower)) return true;
-            if (tour.getTransportType().toLowerCase().contains(lower)) return true;
+            // null-safe, case-insensitive contains
+            if (containsIgnoreCase(tour.getName(),          lower)) return true;
+            if (containsIgnoreCase(tour.getDescription(),   lower)) return true;
+            if (containsIgnoreCase(tour.getFromLocation(),  lower)) return true;
+            if (containsIgnoreCase(tour.getToLocation(),    lower)) return true;
+            if (containsIgnoreCase(tour.getTransportType(), lower)) return true;
 
             return false;
         });
+    }
+
+    private boolean containsIgnoreCase(String field, String term) {
+        return field != null && field.toLowerCase().contains(term);
     }
 }
