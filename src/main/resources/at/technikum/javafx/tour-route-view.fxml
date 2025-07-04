@@ -19,7 +19,7 @@
         <!-- Placeholder shown when no tour/route -->
         <Label fx:id="placeholderLabel"
                text="%route.placeholder"
-               style="-fx-text-fill:gray; -fx-font-style:italic;"
+               style="-fx-font-size:16px; -fx-text-fill:gray; -fx-font-style:italic;"
                visible="false"
                pickOnBounds="false" />
     </StackPane>

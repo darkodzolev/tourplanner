@@ -34,7 +34,9 @@ public class TourViewModel {
         this.tourLogService = tourLogService;
         this.eventManager = eventManager;
         loadTours();
-        eventManager.subscribe(Events.SEARCH_TERM_SELECTED, this::applyFilter);
+        eventManager.subscribe(Events.SEARCH_TERM_SELECTED, payload -> {
+            applyFilter((String) payload);
+        });
 
         selectedTourProperty().addListener((obs, oldT, newT) -> {
             if (newT != null) {
@@ -46,6 +48,19 @@ public class TourViewModel {
             } else {
                 popularity.set("0");
                 childFriendliness.set("0.00");
+            }
+        });
+
+        eventManager.subscribe(Events.TOUR_LOGS_CHANGED, payload -> {
+            if (!(payload instanceof Tour)) return;
+            Tour t = (Tour) payload;
+            // only if it’s the current tour
+            if (t.equals(selectedTour.get())) {
+                List<TourLog> logs = tourLogService.getLogsForTour(t);
+                popularity.set(String.valueOf(logs.size()));
+                childFriendliness.set(
+                        String.format("%.2f", computeChildFriendliness(logs))
+                );
             }
         });
     }
@@ -90,63 +105,54 @@ public class TourViewModel {
     }
 
     private double computeChildFriendliness(List<TourLog> logs) {
-        if (logs.isEmpty()) {
-            return 0.0;
-        }
+        if (logs.isEmpty()) return 0.0;
 
-        var validDiffs = logs.stream()
-                .map(TourLog::getDifficulty)
-                .flatMap(s -> {
-                    try {
-                        double d = Double.parseDouble(s);
-                        return (d >= 1 && d <= 5) ? Stream.of(d) : Stream.empty();
-                    } catch (NumberFormatException ex) {
-                        return Stream.empty();
-                    }
+        // 1) Difficulty → numeric
+        double[] diffs = logs.stream()
+                .mapToDouble(log -> {
+                    return switch (log.getDifficulty().toLowerCase()) {
+                        case "easy"   -> 1.0;
+                        case "medium" -> 3.0;
+                        case "hard"   -> 5.0;
+                        default       -> Double.NaN;
+                    };
                 })
-                .mapToDouble(Double::doubleValue)
+                .filter(d -> !Double.isNaN(d))
                 .toArray();
 
-        double diffScore;
-        if (validDiffs.length == 0) {
-            diffScore = 0.5;     // assume “medium” if no valid difficulties
-        } else {
-            double avgDiff = Arrays.stream(validDiffs).average().getAsDouble();
-            diffScore = (5.0 - avgDiff) / 4.0;
+        double diffScore = 0.5;
+        if (diffs.length > 0) {
+            double avg = Arrays.stream(diffs).average().orElse(3.0);
+            diffScore = (5.0 - avg) / 4.0;
         }
 
-        var validTimes = logs.stream()
-                .map(TourLog::getTotalTime)
-                .flatMapToLong(s -> {
-                    long secs = safeParseSeconds(s);    // returns -1 if invalid
-                    return secs >= 0 ? LongStream.of(secs) : LongStream.empty();
-                })
+        // 2) Time → score = 1/(hours+1)
+        long[] times = logs.stream()
+                .mapToLong(log -> safeParseSeconds(log.getTotalTime()))
+                .filter(sec -> sec >= 0)
                 .toArray();
 
-        double timeScore;
-        if (validTimes.length == 0) {
-            timeScore = 0.5;     // medium default
-        } else {
-            double avgTime = Arrays.stream(validTimes).average().getAsDouble();
-            timeScore = 1.0 / (avgTime / 3600.0 + 1.0);
+        double timeScore = 0.5;
+        if (times.length > 0) {
+            double avgSeconds = Arrays.stream(times).average().orElse(3600.0);
+            double hours = avgSeconds / 3600.0;
+            timeScore = 1.0 / (hours + 1.0);
         }
 
-        var validDists = logs.stream()
+        // 3) Distance in *km* → score = 1/(km+1)
+        double[] kms = logs.stream()
                 .mapToDouble(TourLog::getTotalDistance)
                 .filter(d -> d >= 0)
                 .toArray();
 
-        double distScore;
-        if (validDists.length == 0) {
-            distScore = 0.5;    // medium default
-        } else {
-            double avgDist = Arrays.stream(validDists).average().getAsDouble();
-            distScore = 1.0 / (avgDist / 1000.0 + 1.0);
+        double distScore = 0.5;
+        if (kms.length > 0) {
+            double avgKm = Arrays.stream(kms).average().orElse(1.0);
+            distScore = 1.0 / (avgKm + 1.0);
         }
 
-        // Average the three sub-scores
+        // 4) Final child-friendliness: average of the three
         double cf = (diffScore + timeScore + distScore) / 3.0;
-        // clamp just in case
         return Math.max(0.0, Math.min(cf, 1.0));
     }
 

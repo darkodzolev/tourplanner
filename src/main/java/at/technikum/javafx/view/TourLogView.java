@@ -14,6 +14,7 @@ import java.net.URL;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.time.format.DateTimeFormatter;
 
 public class TourLogView implements Initializable {
     private final TourLogViewModel viewModel;
@@ -29,7 +30,7 @@ public class TourLogView implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // 1) show meaningful text for each TourLog
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         logList.setCellFactory(lv -> new ListCell<>() {
             @Override
             protected void updateItem(TourLog log, boolean empty) {
@@ -39,7 +40,7 @@ public class TourLogView implements Initializable {
                 } else {
                     setText(String.format(
                             "%s — %s (%.1f km, %s)",
-                            log.getDateTime().toLocalDate(),
+                            log.getDateTime().format(dtf),
                             log.getComment(),
                             log.getTotalDistance(),
                             log.getTotalTime()
@@ -145,9 +146,21 @@ public class TourLogView implements Initializable {
         TourLog selected = viewModel.selectedLogProperty().get();
         if (selected == null) {
             showAlert("Selection Error", "No log selected to delete.");
-        } else {
-            viewModel.deleteLog(selected);
+            return;
         }
+
+        Alert confirm = new Alert(
+                Alert.AlertType.CONFIRMATION,
+                "Are you sure you want to delete this log?",
+                ButtonType.YES, ButtonType.NO
+        );
+        confirm.setHeaderText(null);
+        confirm.setTitle("Confirm Delete");
+        confirm.showAndWait().ifPresent(resp -> {
+            if (resp == ButtonType.YES) {
+                viewModel.deleteLog(selected);
+            }
+        });
     }
 
     private void showAlert(String title, String message) {

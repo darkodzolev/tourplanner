@@ -13,6 +13,7 @@ import at.technikum.javafx.service.TourService;
 import at.technikum.javafx.view.MainView;
 import at.technikum.javafx.view.MenuView;
 import at.technikum.javafx.view.SearchView;
+import at.technikum.javafx.view.TourGeneralView;
 import at.technikum.javafx.view.TourLogView;
 import at.technikum.javafx.view.TourView;
 import at.technikum.javafx.viewmodel.MainViewModel;
@@ -60,7 +61,7 @@ public class ViewFactory {
 
         // Tour screen
         this.tourViewModel = new TourViewModel(tourService, tourLogService, eventManager);
-        this.tourLogViewModel = new TourLogViewModel(tourLogService);
+        this.tourLogViewModel = new TourLogViewModel(tourLogService, eventManager);
 
         // Wire tour selection → log loading
         tourViewModel.selectedTourProperty().addListener((obs, oldT, newT) -> {
@@ -85,6 +86,9 @@ public class ViewFactory {
         }
         if (TourView.class == viewClass) {
             return new TourView(tourViewModel);
+        }
+        if (TourGeneralView.class == viewClass) {
+            return new TourGeneralView(tourViewModel);
         }
         if (TourRouteView.class == viewClass) {
             return new TourRouteView(tourViewModel);

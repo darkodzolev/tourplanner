@@ -1,5 +1,7 @@
 package at.technikum.javafx.viewmodel;
 
+import at.technikum.javafx.event.EventManager;
+import at.technikum.javafx.event.Events;
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.entity.TourLog;
 import at.technikum.javafx.service.TourLogService;
@@ -11,6 +13,7 @@ import javafx.collections.ObservableList;
 public class TourLogViewModel {
 
     private final TourLogService tourLogService;
+    private final EventManager   eventManager;
 
     // Logs for the currently selected tour
     private final ObservableList<TourLog> logs = FXCollections.observableArrayList();
@@ -21,8 +24,9 @@ public class TourLogViewModel {
     // Currently selected tour (set by the view when tour changes)
     private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
 
-    public TourLogViewModel(TourLogService tourLogService) {
+    public TourLogViewModel(TourLogService tourLogService, EventManager eventManager) {
         this.tourLogService = tourLogService;
+        this.eventManager   = eventManager;
     }
 
     public ObservableList<TourLog> getLogs() {
@@ -54,6 +58,8 @@ public class TourLogViewModel {
     public void createLog(TourLog log) {
         TourLog created = tourLogService.createLog(log);
         logs.add(created);
+        // Notify that this Tour’s logs changed
+        eventManager.publish(Events.TOUR_LOGS_CHANGED, created.getTour());
     }
 
     public void updateLog(TourLog log) {
@@ -61,10 +67,12 @@ public class TourLogViewModel {
         if (getSelectedTour() != null) {
             loadLogsForTour(getSelectedTour());
         }
+        eventManager.publish(Events.TOUR_LOGS_CHANGED, log.getTour());
     }
 
     public void deleteLog(TourLog log) {
         tourLogService.deleteLog(log);
         logs.remove(log);
+        eventManager.publish(Events.TOUR_LOGS_CHANGED, log.getTour());
     }
 }
