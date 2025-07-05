@@ -15,11 +15,11 @@
             <VBox spacing="10" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS" style="-fx-padding:10;">
                 <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
                     <tabs>
-                        <Tab text="%tab.general" closable="false">
-                            <fx:include source="tour-general-view.fxml"/>
-                        </Tab>
-                        <Tab text="%tab.route"   closable="false">
+                        <Tab text="Route" closable="false">
                             <fx:include source="tour-route-view.fxml"/>
+                        </Tab>
+                        <Tab text="General" closable="false">
+                            <fx:include source="tour-general-view.fxml"/>
                         </Tab>
                     </tabs>
                 </TabPane>

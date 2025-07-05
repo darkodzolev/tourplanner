@@ -10,7 +10,7 @@
     <name>javafx</name>
 
     <properties>
-        <javafx.version>21</javafx.version>
+        <javafx.version>21.0.2</javafx.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.11.4</junit.version>
     </properties>
@@ -146,12 +146,6 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>at.technikum.javafx/at.technikum.javafx.SearchApplication</mainClass>
-                            <launcher>app</launcher>
-                            <jlinkZipName>app</jlinkZipName>
-                            <jlinkImageName>app</jlinkImageName>
-                            <noManPages>true</noManPages>
-                            <stripDebug>true</stripDebug>
-                            <noHeaderFiles>true</noHeaderFiles>
                         </configuration>
                     </execution>
                 </executions>

@@ -1,12 +1,14 @@
 module at.technikum.javafx {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.web;
+    requires javafx.swing;
+
     requires java.desktop;
+    requires java.net.http;
 
     requires jakarta.persistence;
     requires org.hibernate.orm.core;
-
-    requires java.net.http;
 
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.core;
@@ -18,7 +20,7 @@ module at.technikum.javafx {
     opens at.technikum.javafx to javafx.fxml;
     opens at.technikum.javafx.view to javafx.fxml;
     opens at.technikum.javafx.entity;
-    opens at.technikum.javafx.service to jasperreports;
+    opens at.technikum.javafx.service;
 
     exports at.technikum.javafx;
     exports at.technikum.javafx.view;

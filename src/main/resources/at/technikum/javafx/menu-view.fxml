@@ -2,11 +2,15 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.MenuView">
+<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.MenuView" spacing="0">
     <MenuBar>
-        <Menu text="%menu.file">
-            <MenuItem fx:id="importMenuItem" text="%menu.import"/>
-            <MenuItem fx:id="exportMenuItem" text="%menu.export"/>
+        <Menu text="File">
+            <MenuItem fx:id="importMenuItem" text="Import"/>
+            <MenuItem fx:id="exportMenuItem" text="Export"/>
+        </Menu>
+        <Menu text="Reports">
+            <MenuItem fx:id="singleReportItem" text="Generate Tour Report" />
+            <MenuItem fx:id="summaryReportItem" text="Generate Summary Report" />
         </Menu>
     </MenuBar>
 </VBox>
