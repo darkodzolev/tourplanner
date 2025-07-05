@@ -1,22 +1,20 @@
 package at.technikum.javafx.repository;
 
+import at.technikum.javafx.dal.JPAUtil;
 import at.technikum.javafx.entity.Tour;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
-
 import java.util.List;
 import java.util.Optional;
 
 public class TourRepositoryOrm implements TourRepository {
 
-    private final EntityManagerFactory emf;
-
     public TourRepositoryOrm() {
-        this.emf = Persistence.createEntityManagerFactory("hibernate");
+
     }
 
     private EntityManager em() {
-        return emf.createEntityManager();
+        return JPAUtil.getEntityManager();
     }
 
     @Override
@@ -93,7 +91,6 @@ public class TourRepositoryOrm implements TourRepository {
             cd.from(Tour.class);
             em.createQuery(cd).executeUpdate();
             tx.commit();
-            // returning empty list since DB is cleared
             return List.of();
         } catch (RuntimeException e) {
             if (tx.isActive()) tx.rollback();
@@ -112,7 +109,10 @@ public class TourRepositoryOrm implements TourRepository {
             Root<Tour> root = cq.from(Tour.class);
             cq.select(root)
                     .where(cb.equal(root.get("name"), name));
-            Tour result = em.createQuery(cq).getResultStream().findFirst().orElse(null);
+            Tour result = em.createQuery(cq)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
             return Optional.ofNullable(result);
         } finally {
             em.close();

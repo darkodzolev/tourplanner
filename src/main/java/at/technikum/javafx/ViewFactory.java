@@ -1,14 +1,11 @@
 package at.technikum.javafx;
 
 import at.technikum.javafx.event.EventManager;
-import at.technikum.javafx.repository.SearchTermRepository;
-import at.technikum.javafx.repository.SearchTermRepositoryOrm;
 import at.technikum.javafx.repository.TourLogRepository;
 import at.technikum.javafx.repository.TourLogRepositoryOrm;
 import at.technikum.javafx.repository.TourRepository;
 import at.technikum.javafx.repository.TourRepositoryOrm;
 import at.technikum.javafx.service.ReportService;
-import at.technikum.javafx.service.SearchTermService;
 import at.technikum.javafx.service.TourLogService;
 import at.technikum.javafx.service.TourService;
 import at.technikum.javafx.view.MainView;
@@ -36,8 +33,6 @@ public class ViewFactory {
     private static ViewFactory instance;
 
     private final EventManager eventManager;
-    private final SearchTermRepository searchTermRepository;
-    private final SearchTermService    searchTermService;
     private final SearchViewModel      searchViewModel;
     private final TourRepository       tourRepository;
     private final TourLogRepository    tourLogRepository;
@@ -51,13 +46,11 @@ public class ViewFactory {
 
     private ViewFactory() {
         this.eventManager       = new EventManager();
-        this.searchTermRepository = new SearchTermRepositoryOrm();
-        this.searchTermService    = new SearchTermService(eventManager, searchTermRepository);
         this.searchViewModel      = new SearchViewModel(eventManager);
         this.tourRepository       = new TourRepositoryOrm();
         this.tourLogRepository    = new TourLogRepositoryOrm();
-        this.tourService          = new TourService(tourRepository, tourLogRepository);
-        this.tourLogService       = new TourLogService(tourLogRepository);
+        this.tourService          = new TourService(tourRepository, tourLogRepository, eventManager);
+        this.tourLogService       = new TourLogService(tourLogRepository, eventManager);
         this.menuViewModel        = new MenuViewModel(tourService, tourLogService, eventManager);
         this.tourViewModel        = new TourViewModel(tourService, tourLogService, eventManager);
         this.tourLogViewModel     = new TourLogViewModel(tourLogService, eventManager);
@@ -79,7 +72,7 @@ public class ViewFactory {
         try {
             if (MainView.class == viewClass) {
                 // MainView is defined entirely in code
-                return new MainView(new MainViewModel(tourService, searchTermService));
+                return new MainView(new MainViewModel(tourService));
             }
             if (TourView.class == viewClass) {
                 return new TourView(tourViewModel);

@@ -83,8 +83,7 @@ public class TourViewModel {
     }
 
     public void createTour(Tour tour) {
-        Tour created = tourService.createTour(tour);
-        tours.add(created);
+        tourService.createTour(tour);
     }
 
     public void updateTour(Tour tour) {

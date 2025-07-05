@@ -3,17 +3,21 @@ package at.technikum.javafx.service;
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.entity.TourLog;
 import at.technikum.javafx.repository.TourLogRepository;
+import at.technikum.javafx.event.EventManager;
+import at.technikum.javafx.event.Events;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public class TourLogService {
 
     private final TourLogRepository tourLogRepository;
+    private final EventManager eventManager;
 
-    public TourLogService(TourLogRepository tourLogRepository) {
+    public TourLogService(TourLogRepository tourLogRepository,
+                          EventManager eventManager) {
         this.tourLogRepository = tourLogRepository;
+        this.eventManager = eventManager;
     }
 
     public List<TourLog> getAllLogs() {
@@ -29,7 +33,9 @@ public class TourLogService {
 
     public TourLog createLog(TourLog log) {
         validateLog(log, false);
-        return tourLogRepository.save(log);
+        TourLog created = tourLogRepository.save(log);
+        eventManager.publish(Events.TOUR_LOGS_CHANGED, created.getTour());
+        return created;
     }
 
     public TourLog updateLog(TourLog log) {
@@ -37,7 +43,9 @@ public class TourLogService {
             throw new IllegalArgumentException("Cannot update a log without an ID");
         }
         validateLog(log, true);
-        return tourLogRepository.save(log);
+        TourLog updated = tourLogRepository.save(log);
+        eventManager.publish(Events.TOUR_LOGS_CHANGED, updated.getTour());
+        return updated;
     }
 
     public void deleteLog(TourLog log) {
@@ -45,6 +53,11 @@ public class TourLogService {
             throw new IllegalArgumentException("Cannot delete a log without an ID");
         }
         tourLogRepository.delete(log);
+        eventManager.publish(Events.TOUR_LOGS_CHANGED, log.getTour());
+    }
+
+    public Optional<TourLog> findById(Long id) {
+        return tourLogRepository.find(id);
     }
 
     private void validateLog(TourLog log, boolean isUpdate) {
@@ -73,9 +86,5 @@ public class TourLogService {
         if (rating < 1 || rating > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
-    }
-
-    public Optional<TourLog> findById(Long id) {
-        return tourLogRepository.find(id);
     }
 }

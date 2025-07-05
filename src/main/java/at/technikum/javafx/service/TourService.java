@@ -1,9 +1,10 @@
 package at.technikum.javafx.service;
 
 import at.technikum.javafx.entity.Tour;
-import at.technikum.javafx.entity.TourLog;
 import at.technikum.javafx.repository.TourLogRepository;
 import at.technikum.javafx.repository.TourRepository;
+import at.technikum.javafx.event.EventManager;
+import at.technikum.javafx.event.Events;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,10 +13,14 @@ public class TourService {
 
     private final TourRepository tourRepository;
     private final TourLogRepository tourLogRepository;
+    private final EventManager eventManager;
 
-    public TourService(TourRepository tourRepository, TourLogRepository tourLogRepository) {
+    public TourService(TourRepository tourRepository,
+                       TourLogRepository tourLogRepository,
+                       EventManager eventManager) {
         this.tourRepository = tourRepository;
         this.tourLogRepository = tourLogRepository;
+        this.eventManager = eventManager;
     }
 
     public List<Tour> getAllTours() {
@@ -26,9 +31,13 @@ public class TourService {
         validateTour(tour);
         Optional<Tour> existing = tourRepository.findByName(tour.getName());
         if (existing.isPresent()) {
-            throw new IllegalArgumentException("A tour with this name already exists: " + tour.getName());
+            throw new IllegalArgumentException(
+                    "A tour with this name already exists: " + tour.getName()
+            );
         }
-        return tourRepository.save(tour);
+        Tour created = tourRepository.save(tour);
+        eventManager.publish(Events.TOURS_CHANGED, created);
+        return created;
     }
 
     public Tour updateTour(Tour tour) {
@@ -36,15 +45,14 @@ public class TourService {
             throw new IllegalArgumentException("Cannot update tour without an ID");
         }
         validateTour(tour);
-        return tourRepository.save(tour);
+        Tour updated = tourRepository.save(tour);
+        eventManager.publish(Events.TOURS_CHANGED, updated);
+        return updated;
     }
 
     public void deleteTour(Tour tour) {
-        List<TourLog> logs = tourLogRepository.findByTour(tour);
-        for (TourLog log : logs) {
-            tourLogRepository.delete(log);
-        }
         tourRepository.delete(tour);
+        eventManager.publish(Events.TOURS_CHANGED, tour);
     }
 
     public Optional<Tour> findById(Long id) {

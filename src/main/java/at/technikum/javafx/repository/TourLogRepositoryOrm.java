@@ -1,26 +1,20 @@
 package at.technikum.javafx.repository;
 
+import at.technikum.javafx.dal.JPAUtil;
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.entity.TourLog;
 import jakarta.persistence.*;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaDelete;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
-
+import jakarta.persistence.criteria.*;
 import java.util.List;
 import java.util.Optional;
 
 public class TourLogRepositoryOrm implements TourLogRepository {
 
-    private final EntityManagerFactory emf;
-
     public TourLogRepositoryOrm() {
-        this.emf = Persistence.createEntityManagerFactory("hibernate");
     }
 
     private EntityManager em() {
-        return emf.createEntityManager();
+        return JPAUtil.getEntityManager();
     }
 
     @Override
@@ -74,10 +68,10 @@ public class TourLogRepositoryOrm implements TourLogRepository {
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
-            TourLog managed = em.find(TourLog.class, entity.getId());
-            if (managed != null) {
-                em.remove(managed);
-            }
+            TourLog managed = em.contains(entity)
+                    ? entity
+                    : em.merge(entity);
+            em.remove(managed);
             tx.commit();
             return entity;
         } catch (RuntimeException e) {
@@ -115,7 +109,8 @@ public class TourLogRepositoryOrm implements TourLogRepository {
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaQuery<TourLog> cq = cb.createQuery(TourLog.class);
             Root<TourLog> root = cq.from(TourLog.class);
-            cq.select(root).where(cb.equal(root.get("tour"), tour));
+            cq.select(root)
+                    .where(cb.equal(root.get("tour"), tour));
             return em.createQuery(cq).getResultList();
         } finally {
             em.close();
