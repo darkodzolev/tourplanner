@@ -6,8 +6,12 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MainViewModel {
+
+    private static final Logger log = LoggerFactory.getLogger(MainViewModel.class);
 
     private final ITourService tourService;
 
@@ -17,13 +21,10 @@ public class MainViewModel {
     // the currently-selected tour in the ListView
     private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
 
-    public MainViewModel(
-            ITourService tourService
-    ) {
-        this.tourService        = tourService;
-
-        // load existing tours on startup
+    public MainViewModel(ITourService tourService) {
+        this.tourService = tourService;
         tours.setAll(tourService.getAllTours());
+        log.info("MainViewModel initialized with {} tours", tours.size());
     }
 
     public ObservableList<Tour> getTours() {
@@ -35,18 +36,35 @@ public class MainViewModel {
     }
 
     public void createTour(Tour tour) {
-        Tour created = tourService.createTour(tour);
-        tours.add(created);
+        log.info("MainViewModel: creating tour '{}'", tour.getName());
+        try {
+            Tour created = tourService.createTour(tour);
+            tours.add(created);
+            log.info("MainViewModel: tour created (id={}, name='{}')", created.getId(), created.getName());
+        } catch (Exception e) {
+            log.error("MainViewModel: failed to create tour '{}'", tour.getName(), e);
+        }
     }
 
     public void updateTour(Tour tour) {
-        tourService.updateTour(tour);
-        // refresh list
-        tours.setAll(tourService.getAllTours());
+        log.info("MainViewModel: updating tour (id={}, name='{}')", tour.getId(), tour.getName());
+        try {
+            tourService.updateTour(tour);
+            tours.setAll(tourService.getAllTours());
+            log.info("MainViewModel: tour updated (id={}, name='{}')", tour.getId(), tour.getName());
+        } catch (Exception e) {
+            log.error("MainViewModel: failed to update tour (id={}, name='{}')", tour.getId(), tour.getName(), e);
+        }
     }
 
     public void deleteTour(Tour tour) {
-        tourService.deleteTour(tour);
-        tours.remove(tour);
+        log.info("MainViewModel: deleting tour (id={}, name='{}')", tour.getId(), tour.getName());
+        try {
+            tourService.deleteTour(tour);
+            tours.remove(tour);
+            log.info("MainViewModel: tour deleted (id={}, name='{}')", tour.getId(), tour.getName());
+        } catch (Exception e) {
+            log.error("MainViewModel: failed to delete tour (id={}, name='{}')", tour.getId(), tour.getName(), e);
+        }
     }
 }

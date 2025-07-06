@@ -9,24 +9,24 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TourLogViewModel {
+
+    private static final Logger log = LoggerFactory.getLogger(TourLogViewModel.class);
 
     private final ITourLogService tourLogService;
     private final EventManager   eventManager;
 
-    // Logs for the currently selected tour
-    private final ObservableList<TourLog> logs = FXCollections.observableArrayList();
-
-    // Currently selected log entry
-    private final ObjectProperty<TourLog> selectedLog = new SimpleObjectProperty<>();
-
-    // Currently selected tour (set by the view when tour changes)
-    private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
+    private final ObservableList<TourLog> logs           = FXCollections.observableArrayList();
+    private final ObjectProperty<TourLog> selectedLog    = new SimpleObjectProperty<>();
+    private final ObjectProperty<Tour>    selectedTour   = new SimpleObjectProperty<>();
 
     public TourLogViewModel(ITourLogService tourLogService, EventManager eventManager) {
         this.tourLogService = tourLogService;
         this.eventManager   = eventManager;
+        log.info("TourLogViewModel initialized");
     }
 
     public ObservableList<TourLog> getLogs() {
@@ -44,35 +44,58 @@ public class TourLogViewModel {
     public void loadLogsForTour(Tour tour) {
         selectedTour.set(tour);
         logs.setAll(tourLogService.getLogsForTour(tour));
+        log.info("Loaded {} logs for tour (id={})", logs.size(), tour.getId());
     }
 
     public void clearLogs() {
         selectedTour.set(null);
         logs.clear();
+        log.info("Cleared logs list");
     }
 
     public Tour getSelectedTour() {
         return selectedTour.get();
     }
 
-    public void createLog(TourLog log) {
-        TourLog created = tourLogService.createLog(log);
-        logs.add(created);
-        // Notify that this Tour’s logs changed
-        eventManager.publish(Events.TOUR_LOGS_CHANGED, created.getTour());
-    }
-
-    public void updateLog(TourLog log) {
-        tourLogService.updateLog(log);
-        if (getSelectedTour() != null) {
-            loadLogsForTour(getSelectedTour());
+    public void createLog(TourLog entry) {
+        log.info("Creating log for tour (id={}): {}", entry.getTour().getId(), entry);
+        try {
+            TourLog created = tourLogService.createLog(entry);
+            logs.add(created);
+            log.info("Successfully created log (id={}) for tour (id={})",
+                    created.getId(), created.getTour().getId());
+            eventManager.publish(Events.TOUR_LOGS_CHANGED, created.getTour());
+        } catch (Exception e) {
+            log.error("Failed to create log for tour (id={}): {}",
+                    entry.getTour().getId(), entry, e);
         }
-        eventManager.publish(Events.TOUR_LOGS_CHANGED, log.getTour());
     }
 
-    public void deleteLog(TourLog log) {
-        tourLogService.deleteLog(log);
-        logs.remove(log);
-        eventManager.publish(Events.TOUR_LOGS_CHANGED, log.getTour());
+    public void updateLog(TourLog entry) {
+        log.info("Updating log (id={}) for tour (id={}): {}",
+                entry.getId(), entry.getTour().getId(), entry);
+        try {
+            tourLogService.updateLog(entry);
+            if (getSelectedTour() != null) {
+                loadLogsForTour(getSelectedTour());
+            }
+            log.info("Successfully updated log (id={})", entry.getId());
+            eventManager.publish(Events.TOUR_LOGS_CHANGED, entry.getTour());
+        } catch (Exception e) {
+            log.error("Failed to update log (id={}): {}", entry.getId(), entry, e);
+        }
+    }
+
+    public void deleteLog(TourLog entry) {
+        log.info("Deleting log (id={}) for tour (id={})",
+                entry.getId(), entry.getTour().getId());
+        try {
+            tourLogService.deleteLog(entry);
+            logs.remove(entry);
+            log.info("Successfully deleted log (id={})", entry.getId());
+            eventManager.publish(Events.TOUR_LOGS_CHANGED, entry.getTour());
+        } catch (Exception e) {
+            log.error("Failed to delete log (id={}): {}", entry.getId(), entry, e);
+        }
     }
 }

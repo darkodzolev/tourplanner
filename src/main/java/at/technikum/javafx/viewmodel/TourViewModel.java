@@ -10,14 +10,15 @@ import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 public class TourViewModel {
 
+    private static final Logger log = LoggerFactory.getLogger(TourViewModel.class);
     private final ITourService tourService;
     private final ITourLogService tourLogService;
     private final EventManager eventManager;
@@ -34,7 +35,10 @@ public class TourViewModel {
         this.tourService = tourService;
         this.tourLogService = tourLogService;
         this.eventManager = eventManager;
+
         loadTours();
+        log.info("TourViewModel initialized with {} tours", tours.size());
+
         eventManager.subscribe(Events.SEARCH_TERM_SELECTED, payload -> {
             applyFilter((String) payload);
         });
@@ -55,7 +59,6 @@ public class TourViewModel {
         eventManager.subscribe(Events.TOUR_LOGS_CHANGED, payload -> {
             if (!(payload instanceof Tour)) return;
             Tour t = (Tour) payload;
-            // only if it’s the current tour
             if (t.equals(selectedTour.get())) {
                 List<TourLog> logs = tourLogService.getLogsForTour(t);
                 popularity.set(String.valueOf(logs.size()));
@@ -83,17 +86,38 @@ public class TourViewModel {
     }
 
     public void createTour(Tour tour) {
-        tourService.createTour(tour);
+        log.info("Creating new tour: {}", tour.getName());
+        try {
+            tourService.createTour(tour);
+            log.info("Successfully created tour: {}", tour.getName());
+            eventManager.publish(Events.TOURS_CHANGED, null);
+        } catch (Exception e) {
+            log.error("Failed to create tour: {}", tour.getName(), e);
+        }
     }
 
     public void updateTour(Tour tour) {
-        tourService.updateTour(tour);
-        loadTours();
+        log.info("Updating tour (id={}): {}", tour.getId(), tour.getName());
+        try {
+            tourService.updateTour(tour);
+            loadTours();
+            log.info("Successfully updated tour: {}", tour.getName());
+            eventManager.publish(Events.TOURS_CHANGED, null);
+        } catch (Exception e) {
+            log.error("Failed to update tour: {}", tour.getName(), e);
+        }
     }
 
     public void deleteTour(Tour tour) {
-        tourService.deleteTour(tour);
-        tours.remove(tour);
+        log.info("Deleting tour (id={}): {}", tour.getId(), tour.getName());
+        try {
+            tourService.deleteTour(tour);
+            tours.remove(tour);
+            log.info("Successfully deleted tour: {}", tour.getName());
+            eventManager.publish(Events.TOURS_CHANGED, null);
+        } catch (Exception e) {
+            log.error("Failed to delete tour: {}", tour.getName(), e);
+        }
     }
 
     public StringProperty popularityProperty() {
@@ -102,10 +126,6 @@ public class TourViewModel {
 
     public StringProperty childFriendlinessProperty() {
         return childFriendliness;
-    }
-
-    private int computePopularity(Tour tour) {
-        return tour.getLogs().size();
     }
 
     private double computeChildFriendliness(List<TourLog> logs) {
@@ -168,7 +188,7 @@ public class TourViewModel {
             int h = Integer.parseInt(parts[0]);
             int m = Integer.parseInt(parts[1]);
             int s = Integer.parseInt(parts[2]);
-            return (long)h * 3600 + m * 60 + s;
+            return (long) h * 3600 + m * 60 + s;
         } catch (NumberFormatException ex) {
             return -1;
         }
@@ -178,14 +198,11 @@ public class TourViewModel {
         String lower = term == null ? "" : term.toLowerCase();
         filteredTour.setPredicate(tour -> {
             if (lower.isBlank()) return true;
-
-            // null-safe, case-insensitive contains
-            if (containsIgnoreCase(tour.getName(),          lower)) return true;
-            if (containsIgnoreCase(tour.getDescription(),   lower)) return true;
-            if (containsIgnoreCase(tour.getFromLocation(),  lower)) return true;
-            if (containsIgnoreCase(tour.getToLocation(),    lower)) return true;
+            if (containsIgnoreCase(tour.getName(), lower)) return true;
+            if (containsIgnoreCase(tour.getDescription(), lower)) return true;
+            if (containsIgnoreCase(tour.getFromLocation(), lower)) return true;
+            if (containsIgnoreCase(tour.getToLocation(), lower)) return true;
             if (containsIgnoreCase(tour.getTransportType(), lower)) return true;
-
             return false;
         });
     }

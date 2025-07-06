@@ -1,11 +1,13 @@
 package at.technikum.javafx.service;
 
+import at.technikum.javafx.service.GeocodeResult;
+import at.technikum.javafx.service.RouteResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse.BodyHandlers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +21,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 public class OrsService {
+    private static final Logger log = LoggerFactory.getLogger(OrsService.class);
     private static final String BASE_URL;
     private static final String API_KEY;
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -28,25 +31,30 @@ public class OrsService {
         try (InputStream is = OrsService.class.getResourceAsStream("/ors.properties")) {
             props.load(is);
         } catch (IOException e) {
+            log.error("Failed to load ORS config", e);
             throw new ExceptionInInitializerError("Failed to load ORS config: " + e.getMessage());
         }
         BASE_URL = props.getProperty("ors.base.url");
-        API_KEY = props.getProperty("ors.api.key");
+        API_KEY   = props.getProperty("ors.api.key");
+        log.info("OrsService configured with BASE_URL={}", BASE_URL);
     }
 
     private final HttpClient httpClient;
 
     public OrsService() {
         this.httpClient = HttpClient.newHttpClient();
+        log.info("OrsService initialized");
     }
 
     public Optional<GeocodeResult> geocode(String address) {
+        log.info("geocode() called for address='{}'", address);
         try {
             String textParam = URLEncoder.encode(address, StandardCharsets.UTF_8);
             String uri = String.format(
                     "%s/geocode/search?api_key=%s&text=%s",
                     BASE_URL, API_KEY, textParam
             );
+            log.debug("Sending geocode request to {}", uri);
 
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(uri))
@@ -54,14 +62,17 @@ public class OrsService {
                     .GET()
                     .build();
 
-            HttpResponse<String> resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            var resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
             if (resp.statusCode() != 200) {
-                throw new RuntimeException("ORS geocode failed: HTTP " + resp.statusCode());
+                String msg = "ORS geocode failed: HTTP " + resp.statusCode();
+                log.error(msg + " - body: {}", resp.body());
+                throw new RuntimeException(msg);
             }
 
             JsonNode root     = MAPPER.readTree(resp.body());
             JsonNode features = root.path("features");
             if (!features.isArray() || features.isEmpty()) {
+                log.warn("No features returned for geocode('{}')", address);
                 return Optional.empty();
             }
 
@@ -71,36 +82,31 @@ public class OrsService {
             double lat = geom.get(1).asDouble();
 
             JsonNode bboxNode = first.path("bbox");
-            double minLon = bboxNode.get(0).asDouble();
-            double minLat = bboxNode.get(1).asDouble();
-            double maxLon = bboxNode.get(2).asDouble();
-            double maxLat = bboxNode.get(3).asDouble();
+            double[] bbox = new double[]{
+                    bboxNode.get(0).asDouble(),
+                    bboxNode.get(1).asDouble(),
+                    bboxNode.get(2).asDouble(),
+                    bboxNode.get(3).asDouble()
+            };
 
-            double[] bbox = new double[]{minLon, minLat, maxLon, maxLat};
-            return Optional.of(new GeocodeResult(lat, lon, bbox));
+            GeocodeResult result = new GeocodeResult(lat, lon, bbox);
+            log.info("geocode() success for '{}': {}", address, result);
+            return Optional.of(result);
 
         } catch (IOException | InterruptedException e) {
+            log.error("Error calling ORS geocode for '{}'", address, e);
             throw new RuntimeException("Error calling ORS geocode", e);
         }
     }
 
-    /**
-     * Compute a route between two points.
-     *
-     * @param profile  transport profile, e.g. "driving-car" or "foot-walking"
-     * @param fromLon  longitude of the start
-     * @param fromLat  latitude of the start
-     * @param toLon    longitude of the end
-     * @param toLat    latitude of the end
-     * @return a RouteResult with distance (m), duration (s), geometry and bbox
-     */
     public Optional<RouteResult> directions(
             String profile,
             double fromLon, double fromLat,
             double toLon,   double toLat
     ) {
+        log.info("directions() called: profile='{}' from=({},{}) to=({},{})",
+                profile, fromLon, fromLat, toLon, toLat);
         try {
-            // build JSON body: { "coordinates": [ [fromLon,fromLat], [toLon,toLat] ] }
             ObjectNode body = MAPPER.createObjectNode();
             ArrayNode coords = body.putArray("coordinates");
             coords.addArray().add(fromLon).add(fromLat);
@@ -109,40 +115,41 @@ public class OrsService {
 
             String uri = String.format(
                     "%s/v2/directions/%s/geojson",
-                    BASE_URL, profile, API_KEY
+                    BASE_URL, profile
             );
+            log.debug("Sending directions request to {}", uri);
 
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(uri))
                     .header("Authorization", API_KEY)
                     .header("Content-Type",  "application/json")
                     .header("Accept",        "application/json, application/geo+json")
-                    .POST(BodyPublishers.ofString(jsonBody))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            var resp = httpClient.send(req, BodyHandlers.ofString());
+            var resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
             if (resp.statusCode() != 200) {
-                System.err.println("ORS error body: " + resp.body());
+                log.error("ORS directions failed: HTTP {} body {}", resp.statusCode(), resp.body());
                 throw new RuntimeException("ORS directions failed: HTTP " + resp.statusCode());
             }
 
             JsonNode root     = MAPPER.readTree(resp.body());
             JsonNode features = root.path("features");
             if (!features.isArray() || features.isEmpty()) {
+                log.warn("No route features returned for directions()");
                 return Optional.empty();
             }
 
-            JsonNode feat = features.get(0);
+            JsonNode feat  = features.get(0);
             JsonNode props = feat.path("properties").path("segments").get(0);
             double distance = props.path("distance").asDouble();
             double duration = props.path("duration").asDouble();
             JsonNode geometry = feat.path("geometry");
 
-            // bbox is often on the root of the FeatureCollection
             JsonNode bboxNode  = root.path("bbox");
             double[] bbox = null;
             if (bboxNode.isArray() && bboxNode.size() == 4) {
-                bbox = new double[] {
+                bbox = new double[]{
                         bboxNode.get(0).asDouble(),
                         bboxNode.get(1).asDouble(),
                         bboxNode.get(2).asDouble(),
@@ -150,9 +157,12 @@ public class OrsService {
                 };
             }
 
-            return Optional.of(new RouteResult(distance, duration, geometry, bbox));
+            RouteResult result = new RouteResult(distance, duration, geometry, bbox);
+            log.info("directions() success: {}", result);
+            return Optional.of(result);
 
         } catch (IOException | InterruptedException e) {
+            log.error("Error calling ORS directions", e);
             throw new RuntimeException("Error calling ORS directions", e);
         }
     }
