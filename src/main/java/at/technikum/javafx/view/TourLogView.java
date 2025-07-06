@@ -67,6 +67,7 @@ public class TourLogView implements Initializable {
         }
     }
 
+    @FXML
     private void openNewLogDialog() {
         try {
             ResourceBundle i18n = ResourceBundle.getBundle(
@@ -95,6 +96,7 @@ public class TourLogView implements Initializable {
         }
     }
 
+    @FXML
     private void openEditLogDialog() {
         TourLog selected = viewModel.selectedLogProperty().get();
         if (selected == null) {
@@ -127,6 +129,7 @@ public class TourLogView implements Initializable {
         }
     }
 
+    @FXML
     private void handleDeleteLog() {
         TourLog selected = viewModel.selectedLogProperty().get();
         if (selected == null) {
