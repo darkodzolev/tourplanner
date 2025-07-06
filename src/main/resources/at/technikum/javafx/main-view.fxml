@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import java.lang.String?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.MainView">
     <top>
         <VBox>
             <fx:include source="menu-view.fxml"/>
             <fx:include source="search-view.fxml"/>
+            <HBox spacing="8" alignment="CENTER_RIGHT" style="-fx-padding: 0 10 5 10;">
+                <Label text="Theme:"/>
+                <ToggleButton fx:id="themeToggle" text="     "/>
+            </HBox>
         </VBox>
     </top>
     <center>
