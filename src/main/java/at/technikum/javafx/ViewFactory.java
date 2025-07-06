@@ -66,7 +66,6 @@ public class ViewFactory {
     public Object create(Class<?> viewClass) {
         try {
             if (MainView.class == viewClass) {
-                // MainView is defined entirely in code
                 return new MainView(new MainViewModel(tourService));
             }
             if (TourView.class == viewClass) {
