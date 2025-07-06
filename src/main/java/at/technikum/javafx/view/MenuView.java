@@ -1,7 +1,7 @@
 package at.technikum.javafx.view;
 
 import at.technikum.javafx.entity.Tour;
-import at.technikum.javafx.service.ReportService;
+import at.technikum.javafx.service.IReportService;
 import at.technikum.javafx.viewmodel.MenuViewModel;
 import at.technikum.javafx.viewmodel.TourViewModel;
 import javafx.fxml.FXML;
@@ -23,7 +23,7 @@ import javafx.scene.control.SingleSelectionModel;
 public class MenuView implements Initializable {
     private final MenuViewModel menuViewModel;
     private final TourViewModel tourViewModel;
-    private final ReportService reportService;
+    private final IReportService reportService;
     private final TourRouteView tourRouteView;
 
     @FXML private MenuItem importMenuItem;
@@ -33,7 +33,7 @@ public class MenuView implements Initializable {
 
     public MenuView(MenuViewModel menuViewModel,
                     TourViewModel tourViewModel,
-                    ReportService reportService,
+                    IReportService reportService,
                     TourRouteView tourRouteView) {
         this.menuViewModel   = menuViewModel;
         this.tourViewModel   = tourViewModel;

@@ -6,10 +6,15 @@ import at.technikum.javafx.repository.TourRepository;
 import at.technikum.javafx.event.EventManager;
 import at.technikum.javafx.event.Events;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 
-public class TourService {
+@Service
+@Transactional
+public class TourService implements ITourService {
 
     private final TourRepository tourRepository;
     private final TourLogRepository tourLogRepository;
@@ -18,9 +23,9 @@ public class TourService {
     public TourService(TourRepository tourRepository,
                        TourLogRepository tourLogRepository,
                        EventManager eventManager) {
-        this.tourRepository = tourRepository;
+        this.tourRepository    = tourRepository;
         this.tourLogRepository = tourLogRepository;
-        this.eventManager = eventManager;
+        this.eventManager      = eventManager;
     }
 
     public List<Tour> getAllTours() {
@@ -29,12 +34,10 @@ public class TourService {
 
     public Tour createTour(Tour tour) {
         validateTour(tour);
-        Optional<Tour> existing = tourRepository.findByName(tour.getName());
-        if (existing.isPresent()) {
-            throw new IllegalArgumentException(
-                    "A tour with this name already exists: " + tour.getName()
-            );
-        }
+        tourRepository.findByName(tour.getName())
+                .ifPresent(t -> { throw new IllegalArgumentException(
+                        "A tour with this name already exists: " + tour.getName()
+                ); });
         Tour created = tourRepository.save(tour);
         eventManager.publish(Events.TOURS_CHANGED, created);
         return created;
@@ -56,7 +59,7 @@ public class TourService {
     }
 
     public Optional<Tour> findById(Long id) {
-        return tourRepository.find(id);
+        return tourRepository.findById(id);
     }
 
     public Optional<Tour> findByName(String name) {

@@ -4,7 +4,7 @@ import at.technikum.javafx.event.EventManager;
 import at.technikum.javafx.event.Events;
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.entity.TourLog;
-import at.technikum.javafx.service.TourLogService;
+import at.technikum.javafx.service.ITourLogService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -12,7 +12,7 @@ import javafx.collections.ObservableList;
 
 public class TourLogViewModel {
 
-    private final TourLogService tourLogService;
+    private final ITourLogService tourLogService;
     private final EventManager   eventManager;
 
     // Logs for the currently selected tour
@@ -24,7 +24,7 @@ public class TourLogViewModel {
     // Currently selected tour (set by the view when tour changes)
     private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
 
-    public TourLogViewModel(TourLogService tourLogService, EventManager eventManager) {
+    public TourLogViewModel(ITourLogService tourLogService, EventManager eventManager) {
         this.tourLogService = tourLogService;
         this.eventManager   = eventManager;
     }

@@ -27,14 +27,18 @@ import java.util.stream.Stream;
 import java.util.Arrays;
 
 import javafx.application.Platform;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-public class ReportService {
-    private final TourLogService tourLogService;
+@Service
+@Transactional
+public class ReportService implements IReportService {
+    private final ITourLogService tourLogService;
     private final Path leafletDir = Paths.get(
             System.getProperty("user.home"), ".tourplanner", "leaflet"
     );
 
-    public ReportService(TourLogService tourLogService) {
+    public ReportService(ITourLogService tourLogService) {
         this.tourLogService = tourLogService;
     }
 

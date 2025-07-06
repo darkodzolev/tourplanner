@@ -4,20 +4,20 @@ import at.technikum.javafx.event.EventManager;
 import at.technikum.javafx.event.Events;
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.entity.TourLog;
-import at.technikum.javafx.service.TourLogService;
-import at.technikum.javafx.service.TourService;
+import at.technikum.javafx.service.ITourLogService;
+import at.technikum.javafx.service.ITourService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.util.List;
 import java.util.Collections;
 
 public class MenuViewModel {
-    private final TourService tourService;
-    private final TourLogService tourLogService;
+    private final ITourService tourService;
+    private final ITourLogService tourLogService;
     private final EventManager eventManager;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public MenuViewModel(TourService tourService, TourLogService tourLogService, EventManager eventManager) {
+    public MenuViewModel(ITourService tourService, ITourLogService tourLogService, EventManager eventManager) {
         this.tourService    = tourService;
         this.tourLogService = tourLogService;
         this.eventManager = eventManager;

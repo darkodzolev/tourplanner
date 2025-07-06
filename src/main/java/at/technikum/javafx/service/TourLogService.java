@@ -6,10 +6,15 @@ import at.technikum.javafx.repository.TourLogRepository;
 import at.technikum.javafx.event.EventManager;
 import at.technikum.javafx.event.Events;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 
-public class TourLogService {
+@Service
+@Transactional
+public class TourLogService implements ITourLogService {
 
     private final TourLogRepository tourLogRepository;
     private final EventManager eventManager;
@@ -17,7 +22,7 @@ public class TourLogService {
     public TourLogService(TourLogRepository tourLogRepository,
                           EventManager eventManager) {
         this.tourLogRepository = tourLogRepository;
-        this.eventManager = eventManager;
+        this.eventManager      = eventManager;
     }
 
     public List<TourLog> getAllLogs() {
@@ -57,7 +62,7 @@ public class TourLogService {
     }
 
     public Optional<TourLog> findById(Long id) {
-        return tourLogRepository.find(id);
+        return tourLogRepository.findById(id);
     }
 
     private void validateLog(TourLog log, boolean isUpdate) {

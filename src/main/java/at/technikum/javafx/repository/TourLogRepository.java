@@ -2,21 +2,12 @@ package at.technikum.javafx.repository;
 
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.entity.TourLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface TourLogRepository {
-
-    Optional<TourLog> find(Long id);
-
-    List<TourLog> findAll();
-
-    TourLog save(TourLog entity);
-
-    TourLog delete(TourLog entity);
-
-    List<TourLog> deleteAll();
-
+@Repository
+public interface TourLogRepository extends JpaRepository<TourLog, Long> {
     List<TourLog> findByTour(Tour tour);
 }

@@ -4,8 +4,8 @@ import at.technikum.javafx.entity.TourLog;
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.event.EventManager;
 import at.technikum.javafx.event.Events;
-import at.technikum.javafx.service.TourLogService;
-import at.technikum.javafx.service.TourService;
+import at.technikum.javafx.service.ITourLogService;
+import at.technikum.javafx.service.ITourService;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,8 +18,8 @@ import java.util.stream.Stream;
 
 public class TourViewModel {
 
-    private final TourService tourService;
-    private final TourLogService tourLogService;
+    private final ITourService tourService;
+    private final ITourLogService tourLogService;
     private final EventManager eventManager;
 
     private final StringProperty popularity = new SimpleStringProperty("0");
@@ -30,7 +30,7 @@ public class TourViewModel {
     private final FilteredList<Tour> filteredTour = new FilteredList<>(tours, t -> true);
     private final ListProperty<Tour> selectedTours = new SimpleListProperty<>(FXCollections.observableArrayList());
 
-    public TourViewModel(TourService tourService, TourLogService tourLogService, EventManager eventManager) {
+    public TourViewModel(ITourService tourService, ITourLogService tourLogService, EventManager eventManager) {
         this.tourService = tourService;
         this.tourLogService = tourLogService;
         this.eventManager = eventManager;

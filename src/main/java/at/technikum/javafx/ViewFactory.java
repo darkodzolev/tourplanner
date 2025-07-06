@@ -1,13 +1,9 @@
 package at.technikum.javafx;
 
 import at.technikum.javafx.event.EventManager;
-import at.technikum.javafx.repository.TourLogRepository;
-import at.technikum.javafx.repository.TourLogRepositoryOrm;
-import at.technikum.javafx.repository.TourRepository;
-import at.technikum.javafx.repository.TourRepositoryOrm;
-import at.technikum.javafx.service.ReportService;
-import at.technikum.javafx.service.TourLogService;
-import at.technikum.javafx.service.TourService;
+import at.technikum.javafx.service.IReportService;
+import at.technikum.javafx.service.ITourLogService;
+import at.technikum.javafx.service.ITourService;
 import at.technikum.javafx.view.MainView;
 import at.technikum.javafx.view.MenuView;
 import at.technikum.javafx.view.SearchView;
@@ -32,31 +28,30 @@ public class ViewFactory {
 
     private static ViewFactory instance;
 
-    private final EventManager eventManager;
-    private final SearchViewModel      searchViewModel;
-    private final TourRepository       tourRepository;
-    private final TourLogRepository    tourLogRepository;
-    private final TourService          tourService;
-    private final TourLogService       tourLogService;
-    private final MenuViewModel        menuViewModel;
-    private final TourViewModel        tourViewModel;
-    private final TourLogViewModel     tourLogViewModel;
-    private final ReportService        reportService;
-    private final TourRouteView        tourRouteView;
+    private final EventManager    eventManager;
+    private final ITourService     tourService;
+    private final ITourLogService  tourLogService;
+    private final IReportService reportService;
+
+    private final SearchViewModel     searchViewModel;
+    private final MenuViewModel       menuViewModel;
+    private final TourViewModel       tourViewModel;
+    private final TourLogViewModel    tourLogViewModel;
+    private final TourRouteView       tourRouteView;
 
     private ViewFactory() {
-        this.eventManager       = new EventManager();
-        this.searchViewModel      = new SearchViewModel(eventManager);
-        this.tourRepository       = new TourRepositoryOrm();
-        this.tourLogRepository    = new TourLogRepositoryOrm();
-        this.tourService          = new TourService(tourRepository, tourLogRepository, eventManager);
-        this.tourLogService       = new TourLogService(tourLogRepository, eventManager);
-        this.menuViewModel        = new MenuViewModel(tourService, tourLogService, eventManager);
-        this.tourViewModel        = new TourViewModel(tourService, tourLogService, eventManager);
-        this.tourLogViewModel     = new TourLogViewModel(tourLogService, eventManager);
-        this.reportService        = new ReportService(tourLogService);
-        this.tourRouteView        = new TourRouteView(tourViewModel);
-        // wire tour selection to log loading
+        this.eventManager    = TourPlannerApplication.getBean(EventManager.class);
+        this.tourService     = TourPlannerApplication.getBean(ITourService.class);
+        this.tourLogService  = TourPlannerApplication.getBean(ITourLogService.class);
+        this.reportService = TourPlannerApplication.getBean(IReportService.class);
+
+        this.searchViewModel  = new SearchViewModel(eventManager);
+        this.menuViewModel    = new MenuViewModel(tourService, tourLogService, eventManager);
+        this.tourViewModel    = new TourViewModel(tourService, tourLogService, eventManager);
+        this.tourLogViewModel = new TourLogViewModel(tourLogService, eventManager);
+
+        this.tourRouteView    = new TourRouteView(tourViewModel);
+
         tourViewModel.selectedTourProperty().addListener((obs, oldT, newT) -> {
             if (newT != null) tourLogViewModel.loadLogsForTour(newT);
             else               tourLogViewModel.clearLogs();
