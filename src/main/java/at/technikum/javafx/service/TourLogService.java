@@ -20,12 +20,11 @@ public class TourLogService implements ITourLogService {
     private static final Logger log = LoggerFactory.getLogger(TourLogService.class);
 
     private final TourLogRepository tourLogRepository;
-    private final EventManager      eventManager;
+    private final EventManager eventManager;
 
-    public TourLogService(TourLogRepository tourLogRepository,
-                          EventManager eventManager) {
+    public TourLogService(TourLogRepository tourLogRepository, EventManager eventManager) {
         this.tourLogRepository = tourLogRepository;
-        this.eventManager      = eventManager;
+        this.eventManager = eventManager;
         log.info("TourLogService initialized");
     }
 
@@ -44,8 +43,7 @@ public class TourLogService implements ITourLogService {
 
     @Override
     public List<TourLog> getLogsForTour(Tour tour) {
-        log.debug("Fetching logs for tour (id={})",
-                tour != null ? tour.getId() : null);
+        log.debug("Fetching logs for tour (id={})", tour != null ? tour.getId() : null);
         if (tour == null || tour.getId() == null) {
             String msg = "Tour must be specified to retrieve logs";
             log.error(msg);
@@ -65,15 +63,20 @@ public class TourLogService implements ITourLogService {
     public TourLog createLog(TourLog logEntry) {
         log.info("Creating tour log for tour (id={})",
                 logEntry != null && logEntry.getTour() != null ? logEntry.getTour().getId() : null);
+
+        // Basic validation before insert
         validateLog(logEntry, false);
+
         try {
             TourLog created = tourLogRepository.save(logEntry);
             log.info("Successfully created tour log (id={})", created.getId());
+
+            // Notify system that logs changed
             eventManager.publish(Events.TOUR_LOGS_CHANGED, created.getTour());
+
             return created;
         } catch (Exception e) {
-            log.error("Failed to create tour log for tour (id={})",
-                    logEntry.getTour().getId(), e);
+            log.error("Failed to create tour log for tour (id={})", logEntry.getTour().getId(), e);
             throw e;
         }
     }
@@ -83,16 +86,23 @@ public class TourLogService implements ITourLogService {
         log.info("Updating tour log (id={}) for tour (id={})",
                 logEntry != null ? logEntry.getId() : null,
                 logEntry != null && logEntry.getTour() != null ? logEntry.getTour().getId() : null);
+
         if (logEntry == null || logEntry.getId() == null) {
             String msg = "Cannot update a log without an ID";
             log.error(msg);
             throw new IllegalArgumentException(msg);
         }
+
+        // Basic validation before update
         validateLog(logEntry, true);
+
         try {
             TourLog updated = tourLogRepository.save(logEntry);
             log.info("Successfully updated tour log (id={})", updated.getId());
+
+            // Notify system that logs changed
             eventManager.publish(Events.TOUR_LOGS_CHANGED, updated.getTour());
+
             return updated;
         } catch (Exception e) {
             log.error("Failed to update tour log (id={})", logEntry.getId(), e);
@@ -105,14 +115,18 @@ public class TourLogService implements ITourLogService {
         log.info("Deleting tour log (id={}) for tour (id={})",
                 logEntry != null ? logEntry.getId() : null,
                 logEntry != null && logEntry.getTour() != null ? logEntry.getTour().getId() : null);
+
         if (logEntry == null || logEntry.getId() == null) {
             String msg = "Cannot delete a log without an ID";
             log.error(msg);
             throw new IllegalArgumentException(msg);
         }
+
         try {
             tourLogRepository.delete(logEntry);
             log.info("Successfully deleted tour log (id={})", logEntry.getId());
+
+            // Notify system that logs changed
             eventManager.publish(Events.TOUR_LOGS_CHANGED, logEntry.getTour());
         } catch (Exception e) {
             log.error("Failed to delete tour log (id={})", logEntry.getId(), e);
@@ -133,8 +147,10 @@ public class TourLogService implements ITourLogService {
         }
     }
 
+    // Validates all required fields of a TourLog
     private void validateLog(TourLog logEntry, boolean isUpdate) {
         log.trace("Validating TourLog (id={})", logEntry != null ? logEntry.getId() : null);
+
         if (logEntry == null) {
             throw new IllegalArgumentException("TourLog cannot be null");
         }
@@ -156,6 +172,7 @@ public class TourLogService implements ITourLogService {
         if (logEntry.getTotalTime() == null || logEntry.getTotalTime().isBlank()) {
             throw new IllegalArgumentException("Total time is required");
         }
+
         int rating = logEntry.getRating();
         if (rating < 1 || rating > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");

@@ -6,12 +6,18 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.TourLogView" spacing="5" VBox.vgrow="ALWAYS">
+<VBox xmlns="http://javafx.com/javafx/17.0.12"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="at.technikum.javafx.view.TourLogView"
+      spacing="5"
+      VBox.vgrow="ALWAYS">
+
     <HBox spacing="5" alignment="CENTER_LEFT">
         <Label text="%tourlogs.title" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
-        <Button fx:id="newLogButton"    text="%button.add"             onAction="#openNewLogDialog"/>
-        <Button fx:id="deleteLogButton" text="%button.delete"          onAction="#handleDeleteLog"/>
-        <Button fx:id="editLogButton"   text="%button.edit"            onAction="#openEditLogDialog"/>
+        <Button fx:id="newLogButton"    text="%button.add"    onAction="#openNewLogDialog"/>
+        <Button fx:id="deleteLogButton" text="%button.delete" onAction="#handleDeleteLog"/>
+        <Button fx:id="editLogButton"   text="%button.edit"   onAction="#openEditLogDialog"/>
     </HBox>
+
     <ListView fx:id="logList" VBox.vgrow="ALWAYS"/>
 </VBox>

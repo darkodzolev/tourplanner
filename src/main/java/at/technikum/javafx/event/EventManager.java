@@ -1,11 +1,13 @@
 package at.technikum.javafx.event;
 
+import org.springframework.stereotype.Component;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import org.springframework.stereotype.Component;
 
 @Component
 public class EventManager {
+
     private final ConcurrentHashMap<Events, CopyOnWriteArrayList<EventListener>> eventListeners = new ConcurrentHashMap<>();
 
     public void subscribe(Events event, EventListener listener) {
@@ -23,7 +25,6 @@ public class EventManager {
     }
 
     private void publishInternal(Events event, Object payload) {
-        // use an empty COWAL as default so the types line up
         var listeners = eventListeners.getOrDefault(event, new CopyOnWriteArrayList<>());
         for (EventListener listener : listeners) {
             listener.event(payload);

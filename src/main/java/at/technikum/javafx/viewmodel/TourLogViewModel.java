@@ -1,9 +1,9 @@
 package at.technikum.javafx.viewmodel;
 
-import at.technikum.javafx.event.EventManager;
-import at.technikum.javafx.event.Events;
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.entity.TourLog;
+import at.technikum.javafx.event.EventManager;
+import at.technikum.javafx.event.Events;
 import at.technikum.javafx.service.ITourLogService;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -17,15 +17,15 @@ public class TourLogViewModel {
     private static final Logger log = LoggerFactory.getLogger(TourLogViewModel.class);
 
     private final ITourLogService tourLogService;
-    private final EventManager   eventManager;
+    private final EventManager eventManager;
 
-    private final ObservableList<TourLog> logs           = FXCollections.observableArrayList();
-    private final ObjectProperty<TourLog> selectedLog    = new SimpleObjectProperty<>();
-    private final ObjectProperty<Tour>    selectedTour   = new SimpleObjectProperty<>();
+    private final ObservableList<TourLog> logs = FXCollections.observableArrayList();
+    private final ObjectProperty<TourLog> selectedLog = new SimpleObjectProperty<>();
+    private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
 
     public TourLogViewModel(ITourLogService tourLogService, EventManager eventManager) {
         this.tourLogService = tourLogService;
-        this.eventManager   = eventManager;
+        this.eventManager = eventManager;
         log.info("TourLogViewModel initialized");
     }
 
@@ -41,6 +41,10 @@ public class TourLogViewModel {
         return selectedTour;
     }
 
+    public Tour getSelectedTour() {
+        return selectedTour.get();
+    }
+
     public void loadLogsForTour(Tour tour) {
         selectedTour.set(tour);
         logs.setAll(tourLogService.getLogsForTour(tour));
@@ -53,10 +57,6 @@ public class TourLogViewModel {
         log.info("Cleared logs list");
     }
 
-    public Tour getSelectedTour() {
-        return selectedTour.get();
-    }
-
     public void createLog(TourLog entry) {
         log.info("Creating log for tour (id={}): {}", entry.getTour().getId(), entry);
         try {
@@ -66,8 +66,7 @@ public class TourLogViewModel {
                     created.getId(), created.getTour().getId());
             eventManager.publish(Events.TOUR_LOGS_CHANGED, created.getTour());
         } catch (Exception e) {
-            log.error("Failed to create log for tour (id={}): {}",
-                    entry.getTour().getId(), entry, e);
+            log.error("Failed to create log for tour (id={}): {}", entry.getTour().getId(), entry, e);
         }
     }
 

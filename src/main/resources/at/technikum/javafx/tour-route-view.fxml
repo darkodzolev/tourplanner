@@ -11,16 +11,14 @@
       spacing="0">
 
     <StackPane VBox.vgrow="ALWAYS">
-        <!-- Actual map -->
         <WebView fx:id="mapView"
                  VBox.vgrow="ALWAYS"
                  style="-fx-border-color:gray; -fx-border-width:1"/>
 
-        <!-- Placeholder shown when no tour/route -->
         <Label fx:id="placeholderLabel"
                text="(Map with the tour route will appear here)"
                style="-fx-font-size:16px; -fx-text-fill:gray; -fx-font-style:italic;"
                visible="false"
-               pickOnBounds="false" />
+               pickOnBounds="false"/>
     </StackPane>
 </VBox>

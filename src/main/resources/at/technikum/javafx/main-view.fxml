@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import java.lang.String?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.MainView">
+<BorderPane xmlns="http://javafx.com/javafx/17.0.12"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="at.technikum.javafx.view.MainView">
+
     <top>
         <VBox>
             <fx:include source="menu-view.fxml"/>
@@ -14,10 +16,11 @@
             </HBox>
         </VBox>
     </top>
+
     <center>
         <HBox spacing="10" HBox.hgrow="ALWAYS">
             <fx:include source="tour-view.fxml" HBox.hgrow="NEVER"/>
-            <VBox spacing="10" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS" style="-fx-padding:10;">
+            <VBox spacing="10" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS" style="-fx-padding: 10;">
                 <TabPane VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
                     <tabs>
                         <Tab text="Route" closable="false">
@@ -32,4 +35,5 @@
             </VBox>
         </HBox>
     </center>
+
 </BorderPane>

@@ -1,7 +1,5 @@
 package at.technikum.javafx.service;
 
-import at.technikum.javafx.service.GeocodeResult;
-import at.technikum.javafx.service.RouteResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -21,11 +19,13 @@ import java.util.Optional;
 import java.util.Properties;
 
 public class OrsService {
+
     private static final Logger log = LoggerFactory.getLogger(OrsService.class);
     private static final String BASE_URL;
     private static final String API_KEY;
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    // Static block for loading ORS credentials and base URL from config file
     static {
         Properties props = new Properties();
         try (InputStream is = OrsService.class.getResourceAsStream("/ors.properties")) {
@@ -35,7 +35,7 @@ public class OrsService {
             throw new ExceptionInInitializerError("Failed to load ORS config: " + e.getMessage());
         }
         BASE_URL = props.getProperty("ors.base.url");
-        API_KEY   = props.getProperty("ors.api.key");
+        API_KEY = props.getProperty("ors.api.key");
         log.info("OrsService configured with BASE_URL={}", BASE_URL);
     }
 
@@ -69,15 +69,16 @@ public class OrsService {
                 throw new RuntimeException(msg);
             }
 
-            JsonNode root     = MAPPER.readTree(resp.body());
+            JsonNode root = MAPPER.readTree(resp.body());
             JsonNode features = root.path("features");
             if (!features.isArray() || features.isEmpty()) {
                 log.warn("No features returned for geocode('{}')", address);
                 return Optional.empty();
             }
 
+            // Parse coordinates and bounding box
             JsonNode first = features.get(0);
-            JsonNode geom  = first.path("geometry").path("coordinates");
+            JsonNode geom = first.path("geometry").path("coordinates");
             double lon = geom.get(0).asDouble();
             double lat = geom.get(1).asDouble();
 
@@ -102,11 +103,12 @@ public class OrsService {
     public Optional<RouteResult> directions(
             String profile,
             double fromLon, double fromLat,
-            double toLon,   double toLat
+            double toLon, double toLat
     ) {
         log.info("directions() called: profile='{}' from=({},{}) to=({},{})",
                 profile, fromLon, fromLat, toLon, toLat);
         try {
+            // Prepare request body with coordinates
             ObjectNode body = MAPPER.createObjectNode();
             ArrayNode coords = body.putArray("coordinates");
             coords.addArray().add(fromLon).add(fromLat);
@@ -122,8 +124,8 @@ public class OrsService {
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(uri))
                     .header("Authorization", API_KEY)
-                    .header("Content-Type",  "application/json")
-                    .header("Accept",        "application/json, application/geo+json")
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json, application/geo+json")
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
@@ -133,20 +135,22 @@ public class OrsService {
                 throw new RuntimeException("ORS directions failed: HTTP " + resp.statusCode());
             }
 
-            JsonNode root     = MAPPER.readTree(resp.body());
+            JsonNode root = MAPPER.readTree(resp.body());
             JsonNode features = root.path("features");
             if (!features.isArray() || features.isEmpty()) {
                 log.warn("No route features returned for directions()");
                 return Optional.empty();
             }
 
-            JsonNode feat  = features.get(0);
+            // Parse route properties and geometry
+            JsonNode feat = features.get(0);
             JsonNode props = feat.path("properties").path("segments").get(0);
             double distance = props.path("distance").asDouble();
             double duration = props.path("duration").asDouble();
             JsonNode geometry = feat.path("geometry");
 
-            JsonNode bboxNode  = root.path("bbox");
+            // Parse bounding box if available
+            JsonNode bboxNode = root.path("bbox");
             double[] bbox = null;
             if (bboxNode.isArray() && bboxNode.size() == 4) {
                 bbox = new double[]{

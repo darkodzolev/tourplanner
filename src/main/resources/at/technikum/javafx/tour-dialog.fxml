@@ -6,7 +6,10 @@
 <?import javafx.scene.layout.GridPane?>
 <?import java.lang.String?>
 
-<DialogPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.TourDialogView">
+<DialogPane xmlns="http://javafx.com/javafx/17.0.12"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="at.technikum.javafx.view.TourDialogView">
+
     <content>
         <GridPane hgap="10" vgap="10">
             <padding>
@@ -17,19 +20,19 @@
                 <ColumnConstraints percentWidth="70"/>
             </columnConstraints>
 
-            <Label text="%dialog.name"        GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <Label text="%dialog.name" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
             <TextField fx:id="nameField" promptText="%dialog.name.prompt" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
             <Label text="%dialog.description" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
             <TextArea fx:id="descriptionField" prefRowCount="3" wrapText="true" promptText="%dialog.description.prompt" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-            <Label text="%dialog.from"        GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <Label text="%dialog.from" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
             <TextField fx:id="fromField" promptText="%dialog.from.prompt" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
-            <Label text="%dialog.to"          GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+            <Label text="%dialog.to" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
             <TextField fx:id="toField" promptText="%dialog.to.prompt" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
-            <Label text="%dialog.transport"   GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+            <Label text="%dialog.transport" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
             <ComboBox fx:id="transportCombo" promptText="%dialog.transport.prompt" GridPane.rowIndex="4" GridPane.columnIndex="1">
                 <items>
                     <FXCollections fx:factory="observableArrayList">
@@ -43,7 +46,8 @@
     </content>
 
     <buttonTypes>
-        <ButtonType text="%button.save"   buttonData="OK_DONE"/>
+        <ButtonType text="%button.save" buttonData="OK_DONE"/>
         <ButtonType text="%button.cancel" buttonData="CANCEL_CLOSE"/>
     </buttonTypes>
+
 </DialogPane>

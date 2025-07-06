@@ -1,12 +1,12 @@
 package at.technikum.javafx.view;
 
 import at.technikum.javafx.viewmodel.SearchViewModel;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.fxml.FXML;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -14,9 +14,11 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class SearchView implements Initializable {
+
     private final SearchViewModel viewModel;
 
-    @FXML private TextField searchInput;
+    @FXML
+    private TextField searchInput;
 
     public SearchView(SearchViewModel viewModel) {
         this.viewModel = viewModel;
@@ -25,7 +27,7 @@ public class SearchView implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
-            // bidirectional binding so every keystroke fires SEARCH_TERM_SELECTED
+            // Bidirectional binding triggers search updates on keystroke
             searchInput.textProperty().bindBidirectional(viewModel.searchTextProperty());
         } catch (Exception ex) {
             showException("Search view error", ex);

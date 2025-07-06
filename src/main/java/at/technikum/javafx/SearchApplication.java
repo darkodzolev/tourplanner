@@ -21,6 +21,7 @@ public class SearchApplication extends Application {
 
     private static final Logger log = LoggerFactory.getLogger(SearchApplication.class);
     private static HostServices hostServices;
+
     private static final Path leafletDir = Paths.get(
             System.getProperty("user.home"), ".tourplanner", "leaflet"
     );
@@ -31,9 +32,10 @@ public class SearchApplication extends Application {
         try {
             Files.createDirectories(logsDir);
         } catch (IOException e) {
+            log.warn("Could not create logs directory", e);
         }
-        log.info("JavaFX start() called");
 
+        log.info("JavaFX start() called");
         hostServices = getHostServices();
 
         try {
@@ -51,7 +53,6 @@ public class SearchApplication extends Application {
             log.error("Failed to prepare leaflet files", e);
         }
 
-        // load and show main view
         try {
             Parent mainView = FXMLDependencyInjector.load("main-view.fxml", Locale.ENGLISH);
             Scene scene = new Scene(mainView);

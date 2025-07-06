@@ -2,13 +2,13 @@ package at.technikum.javafx.view;
 
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.viewmodel.TourDialogViewModel;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.fxml.FXML;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -16,10 +16,11 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class TourDialogView implements Initializable {
-    @FXML private TextField   nameField;
-    @FXML private TextArea    descriptionField;
-    @FXML private TextField   fromField;
-    @FXML private TextField   toField;
+
+    @FXML private TextField nameField;
+    @FXML private TextArea descriptionField;
+    @FXML private TextField fromField;
+    @FXML private TextField toField;
     @FXML private ComboBox<String> transportCombo;
 
     private final TourDialogViewModel vm = new TourDialogViewModel();

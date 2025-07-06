@@ -5,12 +5,19 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.TourView" spacing="5" HBox.hgrow="ALWAYS" style="-fx-padding:10;">
+<VBox xmlns="http://javafx.com/javafx/17.0.12"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="at.technikum.javafx.view.TourView"
+      spacing="5"
+      HBox.hgrow="ALWAYS"
+      style="-fx-padding:10;">
+
     <HBox spacing="5" alignment="CENTER_LEFT">
         <Label text="%tour.list.title" style="-fx-font-size:16px; -fx-font-weight:bold;"/>
         <Button fx:id="newButton"    text="%button.add"    onAction="#onNewTour"/>
         <Button fx:id="deleteButton" text="%button.delete"/>
         <Button fx:id="editButton"   text="%button.edit"   onAction="#onEditTour"/>
     </HBox>
+
     <ListView fx:id="tourList" VBox.vgrow="ALWAYS"/>
 </VBox>

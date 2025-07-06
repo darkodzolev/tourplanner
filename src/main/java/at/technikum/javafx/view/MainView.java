@@ -25,17 +25,15 @@ public class MainView implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // Bind the toggle to the VM property
         themeToggle.selectedProperty().bindBidirectional(viewModel.darkModeProperty());
 
-        // Whenever darkMode changes, reload stylesheets in every window
+        // Apply theme change to all open windows when toggled
         viewModel.darkModeProperty().addListener((obs, wasDark, isNowDark) -> {
             String sheet = isNowDark
                     ? "/at/technikum/javafx/css/dark-theme.css"
                     : "/at/technikum/javafx/css/light-theme.css";
             String urlForm = getClass().getResource(sheet).toExternalForm();
 
-            // apply to all open windows
             for (Window w : Window.getWindows()) {
                 Scene s = w.getScene();
                 if (s != null) {
@@ -44,7 +42,7 @@ public class MainView implements Initializable {
             }
         });
 
-        // Also catch any dialogs/new windows that open later
+        // Apply theme to any newly opened windows (e.g. dialogs)
         Window.getWindows().addListener((ListChangeListener<Window>) change -> {
             while (change.next()) {
                 if (change.wasAdded()) {
@@ -64,7 +62,7 @@ public class MainView implements Initializable {
             }
         });
 
-        // On startup (after the scene is ready), apply the current theme to all windows
+        // Initial theme setup after scene is shown
         Platform.runLater(() -> {
             boolean dark = viewModel.isDarkMode();
             String sheet = dark

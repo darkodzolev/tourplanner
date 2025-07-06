@@ -6,8 +6,7 @@ public class TourSummary {
     private String avgTime;
     private double avgRating;
 
-    public TourSummary() {
-    }
+    public TourSummary() { }
 
     public TourSummary(String tourName, double avgDistance, String avgTime, double avgRating) {
         this.tourName = tourName;

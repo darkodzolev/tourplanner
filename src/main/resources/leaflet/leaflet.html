@@ -1,40 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <title>Tour Map</title>
   <link
           rel="stylesheet"
           href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
-          integrity="sha512-…"
+          integrity="sha512-..."
           crossorigin=""
   />
   <style>
-    #map { height: 100vh; margin: 0; padding: 0; }
+    #map {
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
   </style>
 </head>
 <body>
 <div id="map"></div>
-<!-- This will pull in the generated GeoJSON as `directions` -->
+
+<!-- Route data loaded from generated JS -->
 <script src="directions.js"></script>
+
 <script
         src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
-        integrity="sha512-…"
+        integrity="sha512-..."
         crossorigin=""
 ></script>
+
 <script>
-  // Initialize map view to the bounding box in directions.bbox
+  // Create map and fit view to bounding box from directions.js
   const map = L.map('map').fitBounds([
-    [directions.bbox[1], directions.bbox[0]], // SW
-    [directions.bbox[3], directions.bbox[2]]  // NE
+    [directions.bbox[1], directions.bbox[0]], // SW corner
+    [directions.bbox[3], directions.bbox[2]]  // NE corner
   ]);
 
-  // Base tile layer
+  // Add OpenStreetMap base tiles
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
   }).addTo(map);
 
-  // Draw the route geometry
+  // Draw route on map
   L.geoJSON(directions.geometry).addTo(map);
 </script>
 </body>

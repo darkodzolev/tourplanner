@@ -3,6 +3,7 @@ package at.technikum.javafx.view;
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.viewmodel.TourViewModel;
 import javafx.beans.value.ChangeListener;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
@@ -10,7 +11,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
-import javafx.fxml.FXML;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -18,6 +18,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class TourGeneralView implements Initializable {
+
     @FXML private StackPane container;
     @FXML private Label placeholder;
     @FXML private GridPane detailsGrid;
@@ -47,7 +48,7 @@ public class TourGeneralView implements Initializable {
                     fromValue.setText(newT.getFromLocation());
                     toValue.setText(newT.getToLocation());
                     transValue.setText(readableTransport(newT.getTransportType()));
-                    distValue.setText(String.format("%.1f km", newT.getDistance()/1000.0));
+                    distValue.setText(String.format("%.1f km", newT.getDistance() / 1000.0));
                     timeValue.setText(formatFriendlyTime(newT.getEstimatedTime()));
 
                     popValue.textProperty().bind(tourVm.popularityProperty());
@@ -63,25 +64,24 @@ public class TourGeneralView implements Initializable {
     }
 
     private String formatFriendlyTime(String hhmmss) {
-        // hh:mm:ss → “X hours Y minutes” or “Y minutes”
         String[] p = hhmmss.split(":");
         int h = Integer.parseInt(p[0]);
         int m = Integer.parseInt(p[1]);
         if (h > 0) {
             return String.format("%d hour%s %d minute%s",
-                    h, (h==1?"":"s"),
-                    m, (m==1?"":"s"));
+                    h, (h == 1 ? "" : "s"),
+                    m, (m == 1 ? "" : "s"));
         } else {
-            return String.format("%d minute%s", m, (m==1?"":"s"));
+            return String.format("%d minute%s", m, (m == 1 ? "" : "s"));
         }
     }
 
     private String readableTransport(String code) {
         return switch (code) {
-            case "driving-car"    -> "Car";
-            case "foot-walking"   -> "Walking";
-            case "cycling-regular"-> "Bicycle";
-            default                -> code;  // fallback
+            case "driving-car"     -> "Car";
+            case "foot-walking"    -> "Walking";
+            case "cycling-regular" -> "Bicycle";
+            default                -> code;
         };
     }
 

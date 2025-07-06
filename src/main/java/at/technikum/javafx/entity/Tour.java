@@ -1,10 +1,8 @@
 package at.technikum.javafx.entity;
 
 import jakarta.persistence.*;
-import java.util.List;
 import java.util.ArrayList;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
+import java.util.List;
 
 @Entity
 @Table(name = "tours")
@@ -38,23 +36,13 @@ public class Tour {
     @Column(name = "route_image_path")
     private String routeImagePath;
 
-    // Default constructor required by JPA
-    public Tour() {
-    }
-
     @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TourLog> logs = new ArrayList<>();
 
-    // getter & setter for logs
-    public List<TourLog> getLogs() {
-        return logs;
+    public Tour() {
+        // Default constructor required by JPA
     }
 
-    public void setLogs(List<TourLog> logs) {
-        this.logs = logs;
-    }
-
-    // Constructor for convenience
     public Tour(String name, String description, String fromLocation, String toLocation,
                 String transportType, double distance, String estimatedTime, String routeImagePath) {
         this.name = name;
@@ -67,7 +55,8 @@ public class Tour {
         this.routeImagePath = routeImagePath;
     }
 
-    // Getters and setters
+    // --- Getters and setters ---
+
     public Long getId() {
         return id;
     }
@@ -138,6 +127,14 @@ public class Tour {
 
     public void setRouteImagePath(String routeImagePath) {
         this.routeImagePath = routeImagePath;
+    }
+
+    public List<TourLog> getLogs() {
+        return logs;
+    }
+
+    public void setLogs(List<TourLog> logs) {
+        this.logs = logs;
     }
 
     @Override

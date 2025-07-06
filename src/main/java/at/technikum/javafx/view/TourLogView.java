@@ -1,24 +1,25 @@
 package at.technikum.javafx.view;
 
-import at.technikum.javafx.entity.TourLog;
 import at.technikum.javafx.entity.Tour;
+import at.technikum.javafx.entity.TourLog;
 import at.technikum.javafx.viewmodel.TourLogViewModel;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.Region;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.time.format.DateTimeFormatter;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 public class TourLogView implements Initializable {
+
     private final TourLogViewModel viewModel;
 
     @FXML private ListView<TourLog> logList;
@@ -34,6 +35,7 @@ public class TourLogView implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         try {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
             logList.setCellFactory(lv -> new ListCell<>() {
                 @Override
                 protected void updateItem(TourLog log, boolean empty) {
@@ -54,6 +56,7 @@ public class TourLogView implements Initializable {
 
             logList.setItems(viewModel.getLogs());
             viewModel.selectedLogProperty().bind(logList.getSelectionModel().selectedItemProperty());
+
             viewModel.selectedTourProperty().addListener((obs, oldT, newT) -> {
                 if (newT != null) viewModel.loadLogsForTour(newT);
                 else viewModel.clearLogs();
@@ -62,6 +65,7 @@ public class TourLogView implements Initializable {
             newLogButton.setOnAction(e -> openNewLogDialog());
             editLogButton.setOnAction(e -> openEditLogDialog());
             deleteLogButton.setOnAction(e -> handleDeleteLog());
+
         } catch (Exception ex) {
             showException("Error initializing Tour Log view", ex);
         }
@@ -103,6 +107,7 @@ public class TourLogView implements Initializable {
             showAlert("Selection Error", "No log selected to edit.");
             return;
         }
+
         try {
             ResourceBundle i18n = ResourceBundle.getBundle(
                     "at.technikum.javafx.i18n_en", Locale.ENGLISH
@@ -136,6 +141,7 @@ public class TourLogView implements Initializable {
             showAlert("Selection Error", "No log selected to delete.");
             return;
         }
+
         try {
             Alert confirm = new Alert(
                     Alert.AlertType.CONFIRMATION,
@@ -165,11 +171,13 @@ public class TourLogView implements Initializable {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(ex.getMessage() != null ? ex.getMessage() : title);
+
         StringWriter sw = new StringWriter();
         ex.printStackTrace(new PrintWriter(sw));
         TextArea textArea = new TextArea(sw.toString());
         textArea.setEditable(false);
         textArea.setWrapText(true);
+
         alert.getDialogPane().setExpandableContent(new TitledPane("Details", textArea));
         alert.showAndWait();
     }

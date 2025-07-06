@@ -1,7 +1,7 @@
 package at.technikum.javafx.viewmodel;
 
-import at.technikum.javafx.entity.TourLog;
 import at.technikum.javafx.entity.Tour;
+import at.technikum.javafx.entity.TourLog;
 import at.technikum.javafx.event.EventManager;
 import at.technikum.javafx.event.Events;
 import at.technikum.javafx.service.ITourLogService;
@@ -19,6 +19,7 @@ import java.util.List;
 public class TourViewModel {
 
     private static final Logger log = LoggerFactory.getLogger(TourViewModel.class);
+
     private final ITourService tourService;
     private final ITourLogService tourLogService;
     private final EventManager eventManager;
@@ -27,8 +28,8 @@ public class TourViewModel {
     private final StringProperty childFriendliness = new SimpleStringProperty("0.00");
 
     private final ObservableList<Tour> tours = FXCollections.observableArrayList();
-    private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
     private final FilteredList<Tour> filteredTour = new FilteredList<>(tours, t -> true);
+    private final ObjectProperty<Tour> selectedTour = new SimpleObjectProperty<>();
     private final ListProperty<Tour> selectedTours = new SimpleListProperty<>(FXCollections.observableArrayList());
 
     public TourViewModel(ITourService tourService, ITourLogService tourLogService, EventManager eventManager) {
@@ -39,50 +40,41 @@ public class TourViewModel {
         loadTours();
         log.info("TourViewModel initialized with {} tours", tours.size());
 
-        eventManager.subscribe(Events.SEARCH_TERM_SELECTED, payload -> {
-            applyFilter((String) payload);
+        eventManager.subscribe(Events.SEARCH_TERM_SELECTED, payload -> applyFilter((String) payload));
+        eventManager.subscribe(Events.TOUR_LOGS_CHANGED, payload -> {
+            if (payload instanceof Tour t && t.equals(selectedTour.get())) {
+                updateMetricsFor(t);
+            }
         });
+        eventManager.subscribe(Events.TOURS_CHANGED, payload -> loadTours());
 
         selectedTourProperty().addListener((obs, oldT, newT) -> {
-            if (newT != null) {
-                var logs = tourLogService.getLogsForTour(newT);
-                popularity.set(String.valueOf(logs.size()));
-                childFriendliness.set(
-                        String.format("%.2f", computeChildFriendliness(logs))
-                );
-            } else {
+            if (newT != null) updateMetricsFor(newT);
+            else {
                 popularity.set("0");
                 childFriendliness.set("0.00");
             }
         });
-
-        eventManager.subscribe(Events.TOUR_LOGS_CHANGED, payload -> {
-            if (!(payload instanceof Tour)) return;
-            Tour t = (Tour) payload;
-            if (t.equals(selectedTour.get())) {
-                List<TourLog> logs = tourLogService.getLogsForTour(t);
-                popularity.set(String.valueOf(logs.size()));
-                childFriendliness.set(
-                        String.format("%.2f", computeChildFriendliness(logs))
-                );
-            }
-        });
-
-        eventManager.subscribe(Events.TOURS_CHANGED, payload -> {
-            loadTours();
-        });
-    }
-
-    private void loadTours() {
-        tours.setAll(tourService.getAllTours());
     }
 
     public ObservableList<Tour> getTours() {
         return filteredTour;
     }
 
+    public ObservableList<Tour> getSelectedTours() {
+        return selectedTours.get();
+    }
+
     public ObjectProperty<Tour> selectedTourProperty() {
         return selectedTour;
+    }
+
+    public StringProperty popularityProperty() {
+        return popularity;
+    }
+
+    public StringProperty childFriendlinessProperty() {
+        return childFriendliness;
     }
 
     public void createTour(Tour tour) {
@@ -120,26 +112,41 @@ public class TourViewModel {
         }
     }
 
-    public StringProperty popularityProperty() {
-        return popularity;
+    private void loadTours() {
+        tours.setAll(tourService.getAllTours());
     }
 
-    public StringProperty childFriendlinessProperty() {
-        return childFriendliness;
+    private void updateMetricsFor(Tour t) {
+        List<TourLog> logs = tourLogService.getLogsForTour(t);
+        popularity.set(String.valueOf(logs.size()));
+        childFriendliness.set(String.format("%.2f", computeChildFriendliness(logs)));
+    }
+
+    private void applyFilter(String term) {
+        String lower = term == null ? "" : term.toLowerCase();
+        filteredTour.setPredicate(tour -> {
+            if (lower.isBlank()) return true;
+            return containsIgnoreCase(tour.getName(), lower) ||
+                    containsIgnoreCase(tour.getDescription(), lower) ||
+                    containsIgnoreCase(tour.getFromLocation(), lower) ||
+                    containsIgnoreCase(tour.getToLocation(), lower) ||
+                    containsIgnoreCase(tour.getTransportType(), lower);
+        });
+    }
+
+    private boolean containsIgnoreCase(String field, String term) {
+        return field != null && field.toLowerCase().contains(term);
     }
 
     private double computeChildFriendliness(List<TourLog> logs) {
         if (logs.isEmpty()) return 0.0;
 
-        // 1) Difficulty → numeric
         double[] diffs = logs.stream()
-                .mapToDouble(log -> {
-                    return switch (log.getDifficulty().toLowerCase()) {
-                        case "easy"   -> 1.0;
-                        case "medium" -> 3.0;
-                        case "hard"   -> 5.0;
-                        default       -> Double.NaN;
-                    };
+                .mapToDouble(log -> switch (log.getDifficulty().toLowerCase()) {
+                    case "easy" -> 1.0;
+                    case "medium" -> 3.0;
+                    case "hard" -> 5.0;
+                    default -> Double.NaN;
                 })
                 .filter(d -> !Double.isNaN(d))
                 .toArray();
@@ -150,7 +157,6 @@ public class TourViewModel {
             diffScore = (5.0 - avg) / 4.0;
         }
 
-        // 2) Time → score = 1/(hours+1)
         long[] times = logs.stream()
                 .mapToLong(log -> safeParseSeconds(log.getTotalTime()))
                 .filter(sec -> sec >= 0)
@@ -163,7 +169,6 @@ public class TourViewModel {
             timeScore = 1.0 / (hours + 1.0);
         }
 
-        // 3) Distance in *km* → score = 1/(km+1)
         double[] kms = logs.stream()
                 .mapToDouble(TourLog::getTotalDistance)
                 .filter(d -> d >= 0)
@@ -175,7 +180,6 @@ public class TourViewModel {
             distScore = 1.0 / (avgKm + 1.0);
         }
 
-        // 4) Final child-friendliness: average of the three
         double cf = (diffScore + timeScore + distScore) / 3.0;
         return Math.max(0.0, Math.min(cf, 1.0));
     }
@@ -188,30 +192,9 @@ public class TourViewModel {
             int h = Integer.parseInt(parts[0]);
             int m = Integer.parseInt(parts[1]);
             int s = Integer.parseInt(parts[2]);
-            return (long) h * 3600 + m * 60 + s;
+            return h * 3600L + m * 60 + s;
         } catch (NumberFormatException ex) {
             return -1;
         }
-    }
-
-    private void applyFilter(String term) {
-        String lower = term == null ? "" : term.toLowerCase();
-        filteredTour.setPredicate(tour -> {
-            if (lower.isBlank()) return true;
-            if (containsIgnoreCase(tour.getName(), lower)) return true;
-            if (containsIgnoreCase(tour.getDescription(), lower)) return true;
-            if (containsIgnoreCase(tour.getFromLocation(), lower)) return true;
-            if (containsIgnoreCase(tour.getToLocation(), lower)) return true;
-            if (containsIgnoreCase(tour.getTransportType(), lower)) return true;
-            return false;
-        });
-    }
-
-    private boolean containsIgnoreCase(String field, String term) {
-        return field != null && field.toLowerCase().contains(term);
-    }
-
-    public ObservableList<Tour> getSelectedTours() {
-        return selectedTours.get();
     }
 }

@@ -9,22 +9,18 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.MenuItem;
-
-import java.io.File;
-
 public class MenuView implements Initializable {
-    private final MenuViewModel  menuViewModel;
-    private final TourViewModel  tourViewModel;
+
+    private final MenuViewModel menuViewModel;
+    private final TourViewModel tourViewModel;
     private final IReportService reportService;
-    private final TourRouteView  tourRouteView;
+    private final TourRouteView tourRouteView;
 
     @FXML private MenuItem importMenuItem;
     @FXML private MenuItem exportMenuItem;
@@ -35,10 +31,10 @@ public class MenuView implements Initializable {
                     TourViewModel tourViewModel,
                     IReportService reportService,
                     TourRouteView tourRouteView) {
-        this.menuViewModel   = menuViewModel;
-        this.tourViewModel   = tourViewModel;
-        this.reportService   = reportService;
-        this.tourRouteView   = tourRouteView;
+        this.menuViewModel = menuViewModel;
+        this.tourViewModel = tourViewModel;
+        this.reportService = reportService;
+        this.tourRouteView = tourRouteView;
     }
 
     @Override
@@ -137,16 +133,13 @@ public class MenuView implements Initializable {
         alert.setTitle(title);
         alert.setHeaderText(ex.getMessage() != null ? ex.getMessage() : title);
 
-        // Capture stack trace
         StringWriter sw = new StringWriter();
         ex.printStackTrace(new PrintWriter(sw));
         TextArea textArea = new TextArea(sw.toString());
         textArea.setEditable(false);
         textArea.setWrapText(true);
 
-        // Expandable Exception area
         alert.getDialogPane().setExpandableContent(new TitledPane("Details", textArea));
-
         alert.showAndWait();
     }
 }

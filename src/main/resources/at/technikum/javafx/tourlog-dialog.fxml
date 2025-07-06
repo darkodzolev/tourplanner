@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.collections.FXCollections?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
@@ -7,10 +6,15 @@
 <?import javafx.scene.layout.GridPane?>
 <?import java.lang.String?>
 
-<DialogPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.TourLogDialogView">
+<DialogPane xmlns="http://javafx.com/javafx/17.0.12"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="at.technikum.javafx.view.TourLogDialogView">
+
     <content>
         <GridPane hgap="10" vgap="10">
-            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
             <columnConstraints>
                 <ColumnConstraints percentWidth="30"/>
                 <ColumnConstraints percentWidth="70"/>
@@ -40,6 +44,7 @@
             <Spinner fx:id="ratingSpinner" editable="true" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
         </GridPane>
     </content>
+
     <buttonTypes>
         <ButtonType text="%button.save"   buttonData="OK_DONE"/>
         <ButtonType text="%button.cancel" buttonData="CANCEL_CLOSE"/>

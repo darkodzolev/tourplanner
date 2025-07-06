@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TourLogDialogViewModel {
+
     private static final Logger log = LoggerFactory.getLogger(TourLogDialogViewModel.class);
 
     private final StringProperty comment = new SimpleStringProperty();
@@ -56,6 +57,7 @@ public class TourLogDialogViewModel {
         distance.set(Double.toString(logEntry.getTotalDistance()));
         time.set(logEntry.getTotalTime());
         rating.set(logEntry.getRating());
+
         log.debug("TourLogDialogViewModel setLog: id={}, comment='{}'",
                 logEntry.getId(), logEntry.getComment());
     }
@@ -67,7 +69,8 @@ public class TourLogDialogViewModel {
         entry.setTotalDistance(Double.parseDouble(distance.get()));
         entry.setTotalTime(time.get());
         entry.setRating(rating.get());
-        log.info("Created TourLog from dialog: tourId=?, difficulty='{}', rating={}",
+
+        log.info("Created TourLog from dialog: difficulty='{}', rating={}",
                 entry.getDifficulty(), entry.getRating());
         return entry;
     }
@@ -78,6 +81,7 @@ public class TourLogDialogViewModel {
         existing.setTotalDistance(Double.parseDouble(distance.get()));
         existing.setTotalTime(time.get());
         existing.setRating(rating.get());
+
         log.info("Updated TourLog from dialog: id={}, newComment='{}', newRating={}",
                 existing.getId(), existing.getComment(), existing.getRating());
         return existing;

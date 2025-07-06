@@ -2,14 +2,19 @@ package at.technikum.javafx.service;
 
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.entity.TourLog;
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -17,22 +22,11 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.Arrays;
-
-import javafx.application.Platform;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-// — Add these logging imports —
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Service
 @Transactional
@@ -53,38 +47,40 @@ public class ReportService implements IReportService {
     public void generateTourReport(Tour tour, WebView ignoredMapView, File outputPdf) throws Exception {
         log.info("generateTourReport: tourId={} output='{}'", tour.getId(), outputPdf.getAbsolutePath());
         long startMs = System.currentTimeMillis();
-        try (InputStream jrStream = getClass().getResourceAsStream("/reports/tour-report.jrxml")) {
-            // 1) compile the JRXML
-            JasperReport jasperReport = JasperCompileManager.compileReport(jrStream);
-            log.debug("Compiled JRXML for tourId={}", tour.getId());
 
-            // 2) fetch logs & build parameters
+        try (InputStream jrStream = getClass().getResourceAsStream("/reports/tour-report.jrxml")) {
+            JasperReport jasperReport = JasperCompileManager.compileReport(jrStream);
+
             List<TourLog> logs = tourLogService.getLogsForTour(tour);
-            log.debug("Fetched {} logs for tourId={}", logs.size(), tour.getId());
-            Map<String,Object> params = new HashMap<>();
+
+            double rawMeters = tour.getDistance();
+            double km = Math.round((rawMeters / 1000.0) * 10.0) / 10.0;
+
+            // Fill parameters for JasperReport
+            Map<String, Object> params = new HashMap<>();
             params.put("tourName",        tour.getName());
             params.put("tourDescription", tour.getDescription());
             params.put("fromLocation",    tour.getFromLocation());
             params.put("toLocation",      tour.getToLocation());
             params.put("transportType",   tour.getTransportType());
-            params.put("distance",        tour.getDistance());
+            params.put("distance",        km);
             params.put("estimatedTime",   tour.getEstimatedTime());
             params.put("popularity",      String.valueOf(logs.size()));
             params.put("childFriendly",   String.format("%.2f", computeChildFriendliness(logs)));
 
-            // 3) wait for map load & snapshot
+            // Ensure map is fully loaded before snapshot
             WebEngine engine = ignoredMapView.getEngine();
             if (engine.getLoadWorker().getState() != Worker.State.SUCCEEDED) {
                 CountDownLatch loadLatch = new CountDownLatch(1);
-                engine.getLoadWorker().stateProperty().addListener((obs,oldState,newState) -> {
+                engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
                     if (newState == Worker.State.SUCCEEDED) loadLatch.countDown();
                 });
                 if (!loadLatch.await(5, TimeUnit.SECONDS)) {
                     throw new IllegalStateException("Map did not finish loading");
                 }
             }
-            log.debug("Map loaded, taking snapshot for tourId={}", tour.getId());
 
+            // Take snapshot of the map for the report
             WritableImage snapshotImage;
             if (Platform.isFxApplicationThread()) {
                 snapshotImage = ignoredMapView.snapshot(new SnapshotParameters(), null);
@@ -100,18 +96,19 @@ public class ReportService implements IReportService {
                 }
                 snapshotImage = tmp[0];
             }
+
+            // Save map image temporarily for report
             File mapPng = File.createTempFile("tour-map-", ".png");
             ImageIO.write(SwingFXUtils.fromFXImage(snapshotImage, null), "png", mapPng);
-            log.debug("Wrote map snapshot to {}", mapPng.getAbsolutePath());
             params.put("mapImage", mapPng.getAbsolutePath());
 
-            // 4) fill report & export PDF
+            // Fill and export the PDF
             JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(logs);
             JasperPrint jp = JasperFillManager.fillReport(jasperReport, params, ds);
             JasperExportManager.exportReportToPdfFile(jp, outputPdf.getAbsolutePath());
-            long duration = System.currentTimeMillis() - startMs;
+
             log.info("Finished generateTourReport for tourId={} -> '{}' ({} ms)",
-                    tour.getId(), outputPdf.getAbsolutePath(), duration);
+                    tour.getId(), outputPdf.getAbsolutePath(), System.currentTimeMillis() - startMs);
         } catch (Exception e) {
             log.error("Error in generateTourReport for tourId={} output='{}'",
                     tour.getId(), outputPdf.getAbsolutePath(), e);
@@ -123,11 +120,11 @@ public class ReportService implements IReportService {
     public void generateSummaryReport(List<Tour> allTours, File outputPdf) throws Exception {
         log.info("generateSummaryReport: toursCount={} output='{}'", allTours.size(), outputPdf.getAbsolutePath());
         long startMs = System.currentTimeMillis();
+
         try (InputStream jrStream = getClass().getResourceAsStream("/reports/summary-report.jrxml")) {
             JasperReport jasperReport = JasperCompileManager.compileReport(jrStream);
-            log.debug("Compiled summary JRXML");
 
-            // Build summary beans as before
+            // Build summary beans (aggregated data for each tour)
             List<TourSummary> summaries = allTours.stream().map(t -> {
                 List<TourLog> logs = tourLogService.getLogsForTour(t);
                 double avgDist = logs.stream().mapToDouble(TourLog::getTotalDistance).average().orElse(0);
@@ -138,31 +135,33 @@ public class ReportService implements IReportService {
                 String avgTime = formatDuration(avgSecs);
                 return new TourSummary(t.getName(), avgDist, avgTime, avgRating);
             }).collect(Collectors.toList());
-            log.debug("Built {} summary beans", summaries.size());
-
-            // NOTE: use a mutable map here, not Map.of()
-            Map<String, Object> params = new HashMap<>();
 
             JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(summaries);
+            Map<String, Object> params = new HashMap<>();
             JasperPrint jp = JasperFillManager.fillReport(jasperReport, params, ds);
             JasperExportManager.exportReportToPdfFile(jp, outputPdf.getAbsolutePath());
 
-            long duration = System.currentTimeMillis() - startMs;
-            log.info("Finished generateSummaryReport -> '{}' ({} ms)", outputPdf.getAbsolutePath(), duration);
+            log.info("Finished generateSummaryReport -> '{}' ({} ms)",
+                    outputPdf.getAbsolutePath(), System.currentTimeMillis() - startMs);
         } catch (Exception e) {
             log.error("Error in generateSummaryReport output='{}'", outputPdf.getAbsolutePath(), e);
             throw e;
         }
     }
 
+    // Simple metric based on difficulty, time, and distance
     private double computeChildFriendliness(List<TourLog> logs) {
         if (logs.isEmpty()) return 0.0;
+
         double[] diffs = logs.stream()
                 .map(TourLog::getDifficulty)
                 .flatMap(s -> {
-                    try { double d = Double.parseDouble(s);
+                    try {
+                        double d = Double.parseDouble(s);
                         return (d >= 1 && d <= 5) ? Stream.of(d) : Stream.empty();
-                    } catch (NumberFormatException ex) { return Stream.empty(); }
+                    } catch (NumberFormatException ex) {
+                        return Stream.empty();
+                    }
                 })
                 .mapToDouble(d -> d)
                 .toArray();
@@ -191,6 +190,7 @@ public class ReportService implements IReportService {
         return Math.max(0.0, Math.min(cf, 1.0));
     }
 
+    // Safely parse time strings like "01:30:45" into seconds
     private long safeParseSeconds(String hms) {
         if (hms == null) return 0;
         String[] parts = hms.split(":");
@@ -199,12 +199,13 @@ public class ReportService implements IReportService {
             long h = Long.parseLong(parts[0]);
             long m = Long.parseLong(parts[1]);
             long s = Long.parseLong(parts[2]);
-            return h*3600 + m*60 + s;
+            return h * 3600 + m * 60 + s;
         } catch (NumberFormatException e) {
             return 0;
         }
     }
 
+    // Convert seconds to formatted duration like "1 h 15 m"
     private String formatDuration(long secs) {
         Duration d = Duration.ofSeconds(secs);
         long hours = d.toHours();

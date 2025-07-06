@@ -7,7 +7,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 public class MainViewModel {
 
     private final ITourService tourService;
-
     private final BooleanProperty darkMode = new SimpleBooleanProperty(false);
 
     public MainViewModel(ITourService tourService) {

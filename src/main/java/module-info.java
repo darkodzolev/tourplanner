@@ -10,7 +10,7 @@ module at.technikum.javafx {
     requires java.net.http;
     requires java.sql;
 
-    // Spring Boot and Spring modules (automatic modules)
+    // Spring modules
     requires spring.boot;
     requires spring.boot.autoconfigure;
     requires spring.context;
@@ -26,10 +26,10 @@ module at.technikum.javafx {
     requires jakarta.persistence;
     requires org.hibernate.orm.core;
 
-    // Connection pooling
+    // Connection pool
     requires com.zaxxer.hikari;
 
-    // Jackson for JSON processing
+    // JSON processing
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.core;
 
@@ -38,23 +38,23 @@ module at.technikum.javafx {
     requires org.apache.logging.log4j.core;
     requires org.slf4j;
 
-    // Reporting and utilities
+    // JasperReports and utils
     requires jasperreports;
     requires commons.logging;
     requires org.apache.commons.collections4;
 
-    // Export packages for external use
+    // Export for use in FXML, DI, or testing
     exports at.technikum.javafx;
     exports at.technikum.javafx.view;
     exports at.technikum.javafx.config to spring.context;
     exports at.technikum.javafx.viewmodel;
     exports at.technikum.javafx.service;
 
-    // Open packages for reflection (JavaFX, Spring, JPA)
+    // Open for reflection (JavaFX, Spring, JPA)
     opens at.technikum.javafx to javafx.fxml, spring.core, spring.beans;
     opens at.technikum.javafx.config to spring.core, spring.beans;
     opens at.technikum.javafx.view to javafx.fxml;
     opens at.technikum.javafx.entity;
-    opens at.technikum.javafx.service to spring.core, spring.beans, spring.aop,spring.tx;
+    opens at.technikum.javafx.service to spring.core, spring.beans, spring.aop, spring.tx;
     opens at.technikum.javafx.event to spring.beans, spring.context;
 }

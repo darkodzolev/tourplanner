@@ -3,6 +3,7 @@ package at.technikum.javafx.entity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,11 +37,10 @@ public class TourLog {
     @Column(nullable = false)
     private int rating;
 
-    // Default constructor
     public TourLog() {
+        // Default constructor
     }
 
-    // Convenience constructor
     public TourLog(Tour tour, LocalDateTime dateTime, String comment,
                    String difficulty, double totalDistance, String totalTime, int rating) {
         this.tour = tour;
@@ -52,7 +52,8 @@ public class TourLog {
         this.rating = rating;
     }
 
-    // Getters and setters
+    // --- Getters and setters ---
+
     public Long getId() {
         return id;
     }

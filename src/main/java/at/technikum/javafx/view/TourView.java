@@ -10,17 +10,9 @@ import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.*;
+import javafx.scene.control.ButtonBar.ButtonData;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -33,14 +25,15 @@ import java.util.ResourceBundle;
 import java.util.function.Consumer;
 
 public class TourView implements Initializable {
+
     private final TourViewModel viewModel;
 
     @FXML private ListView<Tour> tourList;
     @FXML private Button newButton, editButton, deleteButton;
 
-    private final OrsService orsService  = new OrsService();
-    private final MapService mapService  = new MapService();
-    private final Path leafletDir        = Paths.get(System.getProperty("user.home"), ".tourplanner", "leaflet");
+    private final OrsService orsService = new OrsService();
+    private final MapService mapService = new MapService();
+    private final Path leafletDir = Paths.get(System.getProperty("user.home"), ".tourplanner", "leaflet");
 
     public TourView(TourViewModel viewModel) {
         this.viewModel = viewModel;
@@ -61,14 +54,15 @@ public class TourView implements Initializable {
             viewModel.selectedTourProperty().bind(tourList.getSelectionModel().selectedItemProperty());
 
             tourList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-            tourList.getSelectionModel().getSelectedItems()
-                    .addListener((ListChangeListener<Tour>) c ->
+            tourList.getSelectionModel().getSelectedItems().addListener(
+                    (ListChangeListener<Tour>) c ->
                             viewModel.getSelectedTours().setAll(tourList.getSelectionModel().getSelectedItems())
-                    );
+            );
 
             newButton.setOnAction(e -> onNewTour());
             editButton.setOnAction(e -> onEditTour());
             deleteButton.setOnAction(e -> onDeleteTour());
+
         } catch (Exception ex) {
             showException("Tour view initialization error", ex);
         }
@@ -77,13 +71,8 @@ public class TourView implements Initializable {
     @FXML
     private void onNewTour() {
         try {
-            ResourceBundle i18n = ResourceBundle.getBundle(
-                    "at.technikum.javafx.i18n_en", Locale.ENGLISH
-            );
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/at/technikum/javafx/tour-dialog.fxml"),
-                    i18n
-            );
+            ResourceBundle i18n = ResourceBundle.getBundle("at.technikum.javafx.i18n_en", Locale.ENGLISH);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/at/technikum/javafx/tour-dialog.fxml"), i18n);
             DialogPane pane = loader.load();
             TourDialogView controller = loader.getController();
 
@@ -91,13 +80,14 @@ public class TourView implements Initializable {
             dialog.setTitle(i18n.getString("dialog.new.title"));
             dialog.setDialogPane(pane);
             dialog.setResultConverter(btn ->
-                    (btn != null && btn.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                    (btn != null && btn.getButtonData() == ButtonData.OK_DONE)
                             ? controller.getTourFromFields()
                             : null
             );
 
             Optional<Tour> maybe = dialog.showAndWait();
             maybe.ifPresent(t -> computeRouteAndSave(t, viewModel::createTour));
+
         } catch (IOException ex) {
             showException("Cannot open New Tour dialog", ex);
         }
@@ -110,24 +100,19 @@ public class TourView implements Initializable {
             showAlert("Selection Error", "No tour selected to edit.");
             return;
         }
+
         try {
-            ResourceBundle i18n = ResourceBundle.getBundle(
-                    "at.technikum.javafx.i18n_en", Locale.ENGLISH
-            );
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/at/technikum/javafx/tour-dialog.fxml"),
-                    i18n
-            );
+            ResourceBundle i18n = ResourceBundle.getBundle("at.technikum.javafx.i18n_en", Locale.ENGLISH);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/at/technikum/javafx/tour-dialog.fxml"), i18n);
             DialogPane pane = loader.load();
             TourDialogView controller = loader.getController();
-
             controller.setTour(selected);
 
             Dialog<Tour> dialog = new Dialog<>();
             dialog.setTitle(i18n.getString("dialog.edit.title"));
             dialog.setDialogPane(pane);
             dialog.setResultConverter(btn ->
-                    (btn != null && btn.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                    (btn != null && btn.getButtonData() == ButtonData.OK_DONE)
                             ? controller.getUpdatedTour(selected)
                             : null
             );
@@ -138,6 +123,7 @@ public class TourView implements Initializable {
                 tourList.getSelectionModel().clearSelection();
                 tourList.getSelectionModel().select(updated);
             });
+
         } catch (IOException ex) {
             showException("Cannot open Edit Tour dialog", ex);
         }
@@ -150,6 +136,7 @@ public class TourView implements Initializable {
             showAlert("Delete Error", "No tour selected to delete.");
             return;
         }
+
         try {
             Alert confirm = new Alert(
                     Alert.AlertType.CONFIRMATION,
@@ -158,6 +145,7 @@ public class TourView implements Initializable {
             );
             confirm.setHeaderText(null);
             confirm.setTitle("Confirm Delete");
+
             Optional<ButtonType> resp = confirm.showAndWait();
             if (resp.isPresent() && resp.get() == ButtonType.YES) {
                 viewModel.deleteTour(sel);
@@ -177,7 +165,7 @@ public class TourView implements Initializable {
             RouteResult route = orsService.directions(
                     t.getTransportType().trim().toLowerCase(),
                     fromGeo.getLongitude(), fromGeo.getLatitude(),
-                    toGeo.getLongitude(),   toGeo.getLatitude()
+                    toGeo.getLongitude(), toGeo.getLatitude()
             ).orElseThrow(() -> new IllegalArgumentException("No route found"));
 
             t.setDistance(route.getDistance());
@@ -190,9 +178,9 @@ public class TourView implements Initializable {
 
     private String formatDuration(double seconds) {
         long secs = Math.round(seconds);
-        long hrs  = secs / 3600;
-        long min  = (secs % 3600) / 60;
-        long sec  = secs % 60;
+        long hrs = secs / 3600;
+        long min = (secs % 3600) / 60;
+        long sec = secs % 60;
         return String.format("%02d:%02d:%02d", hrs, min, sec);
     }
 

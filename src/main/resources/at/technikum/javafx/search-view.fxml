@@ -3,8 +3,18 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.technikum.javafx.view.SearchView" prefHeight="60" prefWidth="1280">
-    <HBox AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" style="-fx-padding:10;">
-        <TextField fx:id="searchInput" promptText="%search.prompt" HBox.hgrow="ALWAYS"/>
+<AnchorPane xmlns="http://javafx.com/javafx/17.0.12"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="at.technikum.javafx.view.SearchView"
+            prefHeight="60" prefWidth="1280">
+
+    <HBox AnchorPane.topAnchor="0"
+          AnchorPane.leftAnchor="0"
+          AnchorPane.rightAnchor="0"
+          style="-fx-padding:10;">
+        <TextField fx:id="searchInput"
+                   promptText="%search.prompt"
+                   HBox.hgrow="ALWAYS"/>
     </HBox>
+
 </AnchorPane>

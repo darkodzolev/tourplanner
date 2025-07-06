@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SearchViewModel {
+
     private static final Logger log = LoggerFactory.getLogger(SearchViewModel.class);
 
     private final EventManager eventManager;
@@ -16,8 +17,7 @@ public class SearchViewModel {
     public SearchViewModel(EventManager eventManager) {
         this.eventManager = eventManager;
 
-        // automatically publish on every keystroke
-        this.searchText.addListener((obs, oldVal, newVal) -> {
+        searchText.addListener((obs, oldVal, newVal) -> {
             log.debug("Search text changed from '{}' to '{}'", oldVal, newVal);
             eventManager.publish(Events.SEARCH_TERM_SELECTED, newVal);
         });

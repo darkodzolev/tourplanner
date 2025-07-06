@@ -13,9 +13,9 @@ import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
-import javafx.scene.control.Label;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.ResourceBundle;
 
 public class TourRouteView implements Initializable {
+
     @FXML private WebView mapView;
     @FXML private Label placeholderLabel;
 
@@ -43,6 +44,7 @@ public class TourRouteView implements Initializable {
 
     public TourRouteView(TourViewModel tourViewModel) {
         this.tourViewModel = tourViewModel;
+
         tourViewModel.selectedTourProperty().addListener((obs, oldT, newT) -> {
             Platform.runLater(() -> {
                 if (newT != null) {
@@ -83,7 +85,7 @@ public class TourRouteView implements Initializable {
             RouteResult route = orsService.directions(
                     tour.getTransportType().trim().toLowerCase(),
                     fromGeo.getLongitude(), fromGeo.getLatitude(),
-                    toGeo.getLongitude(),   toGeo.getLatitude()
+                    toGeo.getLongitude(), toGeo.getLatitude()
             ).orElseThrow(() -> new IllegalArgumentException("No route found"));
 
             mapService.writeDirectionsJs(route, leafletDir);
@@ -101,9 +103,11 @@ public class TourRouteView implements Initializable {
                     }
                 }
             };
+
             mapEngine.getLoadWorker().stateProperty().addListener(listener);
             mapEngine.load(url);
             mapEngine.reload();
+
         } catch (Exception ex) {
             Platform.runLater(() -> {
                 mapEngine.loadContent("");

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TourDialogViewModel {
+
     private static final Logger log = LoggerFactory.getLogger(TourDialogViewModel.class);
 
     private final StringProperty name = new SimpleStringProperty();
@@ -18,6 +19,7 @@ public class TourDialogViewModel {
     private final StringProperty fromLocation = new SimpleStringProperty();
     private final StringProperty toLocation = new SimpleStringProperty();
     private final ObjectProperty<String> transportType = new SimpleObjectProperty<>();
+
     private final ObservableList<String> transportOptions = FXCollections.observableArrayList(
             "driving-car", "foot-walking", "cycling-regular"
     );

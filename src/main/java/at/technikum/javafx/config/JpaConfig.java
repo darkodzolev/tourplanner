@@ -18,11 +18,10 @@ public class JpaConfig {
 
         LocalContainerEntityManagerFactoryBean emf = builder
                 .dataSource(dataSource)
-                .packages("at.technikum.javafx.entity")  // your entity package
+                .packages("at.technikum.javafx.entity")
                 .persistenceUnit("default")
                 .build();
 
-        // Force it to use the JPA EntityManagerFactory interface
         emf.setEntityManagerFactoryInterface(EntityManagerFactory.class);
         return emf;
     }

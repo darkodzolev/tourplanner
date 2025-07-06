@@ -1,10 +1,10 @@
 package at.technikum.javafx.service;
 
 import at.technikum.javafx.entity.Tour;
-import at.technikum.javafx.repository.TourLogRepository;
-import at.technikum.javafx.repository.TourRepository;
 import at.technikum.javafx.event.EventManager;
 import at.technikum.javafx.event.Events;
+import at.technikum.javafx.repository.TourLogRepository;
+import at.technikum.javafx.repository.TourRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,9 +26,9 @@ public class TourService implements ITourService {
     public TourService(TourRepository tourRepository,
                        TourLogRepository tourLogRepository,
                        EventManager eventManager) {
-        this.tourRepository    = tourRepository;
+        this.tourRepository = tourRepository;
         this.tourLogRepository = tourLogRepository;
-        this.eventManager      = eventManager;
+        this.eventManager = eventManager;
         log.info("TourService initialized");
     }
 
@@ -48,6 +48,8 @@ public class TourService implements ITourService {
     @Override
     public Tour createTour(Tour tour) {
         log.info("Creating new tour: {}", tour.getName());
+
+        // Ensure required fields and uniqueness
         validateTour(tour);
         tourRepository.findByName(tour.getName()).ifPresent(t -> {
             String msg = "A tour with this name already exists: " + tour.getName();
@@ -58,7 +60,10 @@ public class TourService implements ITourService {
         try {
             Tour created = tourRepository.save(tour);
             log.info("Successfully created tour (id={}): {}", created.getId(), created.getName());
+
+            // Notify system that tours changed
             eventManager.publish(Events.TOURS_CHANGED, created);
+
             return created;
         } catch (Exception e) {
             log.error("Failed to create tour: {}", tour.getName(), e);
@@ -69,17 +74,22 @@ public class TourService implements ITourService {
     @Override
     public Tour updateTour(Tour tour) {
         log.info("Updating tour (id={}): {}", tour.getId(), tour.getName());
+
         if (tour.getId() == null) {
             String msg = "Cannot update tour without an ID";
             log.error(msg);
             throw new IllegalArgumentException(msg);
         }
+
         validateTour(tour);
 
         try {
             Tour updated = tourRepository.save(tour);
             log.info("Successfully updated tour (id={}): {}", updated.getId(), updated.getName());
+
+            // Notify system that tours changed
             eventManager.publish(Events.TOURS_CHANGED, updated);
+
             return updated;
         } catch (Exception e) {
             log.error("Failed to update tour (id={}): {}", tour.getId(), tour.getName(), e);
@@ -90,10 +100,14 @@ public class TourService implements ITourService {
     @Override
     public void deleteTour(Tour tour) {
         log.info("Deleting tour (id={}): {}", tour.getId(), tour.getName());
+
         try {
             tourRepository.delete(tour);
             log.info("Successfully deleted tour (id={}): {}", tour.getId(), tour.getName());
+
+            // Notify system that tours changed
             eventManager.publish(Events.TOURS_CHANGED, tour);
+
         } catch (Exception e) {
             log.error("Failed to delete tour (id={}): {}", tour.getId(), tour.getName(), e);
             throw e;
@@ -112,6 +126,7 @@ public class TourService implements ITourService {
         return tourRepository.findByName(name);
     }
 
+    // Ensures required fields are valid
     private void validateTour(Tour tour) {
         log.trace("Validating tour: {}", tour);
         if (tour.getName() == null || tour.getName().isBlank()) {
