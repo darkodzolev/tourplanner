@@ -12,11 +12,16 @@ import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.Label;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,7 +43,6 @@ public class TourRouteView implements Initializable {
 
     public TourRouteView(TourViewModel tourViewModel) {
         this.tourViewModel = tourViewModel;
-        // redraw or clear whenever selection changes
         tourViewModel.selectedTourProperty().addListener((obs, oldT, newT) -> {
             Platform.runLater(() -> {
                 if (newT != null) {
@@ -61,7 +65,7 @@ public class TourRouteView implements Initializable {
         try {
             Files.createDirectories(leafletDir);
         } catch (IOException ex) {
-            throw new RuntimeException("Unable to create map cache dir", ex);
+            showException("Initialization error", ex);
         }
     }
 
@@ -69,7 +73,6 @@ public class TourRouteView implements Initializable {
         return mapView;
     }
 
-    // --- Internal map drawing logic ---
     private void drawRoute(Tour tour) {
         try {
             GeocodeResult fromGeo = orsService.geocode(tour.getFromLocation())
@@ -102,8 +105,25 @@ public class TourRouteView implements Initializable {
             mapEngine.load(url);
             mapEngine.reload();
         } catch (Exception ex) {
-            mapEngine.loadContent("");
-            System.err.println("drawRoute error: " + ex.getMessage());
+            Platform.runLater(() -> {
+                mapEngine.loadContent("");
+                showException("Route drawing error", ex);
+            });
         }
+    }
+
+    private void showException(String title, Throwable ex) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(ex.getMessage() != null ? ex.getMessage() : title);
+
+        StringWriter sw = new StringWriter();
+        ex.printStackTrace(new PrintWriter(sw));
+        TextArea textArea = new TextArea(sw.toString());
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+        alert.getDialogPane().setExpandableContent(new TitledPane("Details", textArea));
+        alert.showAndWait();
     }
 }

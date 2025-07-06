@@ -42,3 +42,6 @@ build/
 
 # ignore the real API key
 /src/main/resources/ors.properties
+
+# Ignore all log files in the logs/ directory
+logs/*.log

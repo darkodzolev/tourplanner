@@ -3,19 +3,23 @@ package at.technikum.javafx.view;
 import at.technikum.javafx.entity.Tour;
 import at.technikum.javafx.viewmodel.TourViewModel;
 import javafx.beans.value.ChangeListener;
-import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.fxml.FXML;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 public class TourGeneralView implements Initializable {
     @FXML private StackPane container;
     @FXML private Label placeholder;
-
     @FXML private GridPane detailsGrid;
     @FXML private Label nameValue, descValue, fromValue, toValue;
     @FXML private Label transValue, distValue, timeValue;
@@ -29,32 +33,32 @@ public class TourGeneralView implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Listen for tour selection changes:
         ChangeListener<Tour> listener = (obs, oldT, newT) -> {
-            if (newT == null) {
-                placeholder.setVisible(true);
-                detailsGrid.setVisible(false);
-            } else {
-                placeholder.setVisible(false);
-                detailsGrid.setVisible(true);
+            try {
+                if (newT == null) {
+                    placeholder.setVisible(true);
+                    detailsGrid.setVisible(false);
+                } else {
+                    placeholder.setVisible(false);
+                    detailsGrid.setVisible(true);
 
-                nameValue.setText(newT.getName());
-                descValue.setText(newT.getDescription());
-                fromValue.setText(newT.getFromLocation());
-                toValue.setText(newT.getToLocation());
-                transValue.setText(friendlyTransport(newT.getTransportType()));
-                distValue.setText(String.format("%.1f km", newT.getDistance()/1000.0));
-                timeValue.setText(formatFriendlyTime(newT.getEstimatedTime()));
+                    nameValue.setText(newT.getName());
+                    descValue.setText(newT.getDescription());
+                    fromValue.setText(newT.getFromLocation());
+                    toValue.setText(newT.getToLocation());
+                    transValue.setText(readableTransport(newT.getTransportType()));
+                    distValue.setText(String.format("%.1f km", newT.getDistance()/1000.0));
+                    timeValue.setText(formatFriendlyTime(newT.getEstimatedTime()));
 
-                // popularity and child-friendly come from the VM
-                popValue.textProperty().bind(tourVm.popularityProperty());
-                cfValue.textProperty().bind(tourVm.childFriendlinessProperty());
+                    popValue.textProperty().bind(tourVm.popularityProperty());
+                    cfValue.textProperty().bind(tourVm.childFriendlinessProperty());
+                }
+            } catch (Exception ex) {
+                showException("Display tour error", ex);
             }
         };
 
-        // attach it
         tourVm.selectedTourProperty().addListener(listener);
-        // also run once for initial state
         listener.changed(null, null, tourVm.selectedTourProperty().get());
     }
 
@@ -72,12 +76,27 @@ public class TourGeneralView implements Initializable {
         }
     }
 
-    private String friendlyTransport(String code) {
+    private String readableTransport(String code) {
         return switch (code) {
             case "driving-car"    -> "Car";
             case "foot-walking"   -> "Walking";
             case "cycling-regular"-> "Bicycle";
             default                -> code;  // fallback
         };
+    }
+
+    private void showException(String title, Throwable ex) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(ex.getMessage() != null ? ex.getMessage() : title);
+
+        StringWriter sw = new StringWriter();
+        ex.printStackTrace(new PrintWriter(sw));
+        TextArea textArea = new TextArea(sw.toString());
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+        alert.getDialogPane().setExpandableContent(new TitledPane("Details", textArea));
+        alert.showAndWait();
     }
 }
